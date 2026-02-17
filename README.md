@@ -2,7 +2,15 @@
 
 ## Overview
 
-Welcome to the FarmShare Intern Development Challenge! This project is a web-based calculator designed to help meat processors calculate labor savings and efficiency by tracking animal hanging weights and calculating the number of animal heads processed. Your task is to improve the application by fixing bugs, adding features, improving styling, and ensuring all tests pass.
+Welcome to the FarmShare Intern Development Challenge! This project is a web-based calculator designed to help meat processors estimate their annual labor savings and costs when using FarmShare's platform. The calculator allows processors to select multiple animal species, enter their annual processing volumes, and see projected labor savings versus platform costs.
+
+The application calculates:
+
+- **Labor Savings**: Based on time saved per animal × number of animals processed
+- **Platform Costs**: $0.02 per pound of hanging weight
+- **Net Benefit**: Labor savings minus platform costs
+
+Your task is to fix the bugs in the code and tests, add features, improve styling, and ensure all tests pass.
 
 ## Live Demo
 
@@ -43,35 +51,61 @@ This project intentionally has several issues and missing features. Your job is 
 
 ### 1. Fix Failing Tests ❌
 
-Currently, some tests are failing. Run `yarn test` to see which tests need attention:
+**Current Status: 14 out of 25 tests are failing**
 
-- **Calculation Bug**: There's a calculation error in the animal heads calculation
-- **Delete Functionality**: Missing delete button for removing animals from the table
-- **Input Validation**: Ensure the form validation works correctly
+Run `yarn test` to see which tests need attention. There are three types of issues:
+
+#### a) Implementation Bugs (Calculation Logic)
+
+There's a bug in `src/utils/calculations.ts` in the `calculateHeads()` function that causes incorrect animal head counts. This bug affects multiple tests.
+
+- **Files affected**: `src/utils/calculations.ts`
+- **Tests failing**: Multiple tests in `src/utils/calculations.test.ts`
+- **Hint**: Check the math in the `calculateHeads()` function
+
+#### b) Wrong Test Expectations
+
+Some tests have incorrect expectations - they're checking for wrong values or wrong text.
+
+- **Files affected**: `src/utils/calculations.test.ts`, `src/App.test.tsx`
+- **Tests failing**: Tests checking for "Monthly" instead of "Annual", wrong calculation values
+- **Hint**: Compare the test expectations with what the code actually produces
+
+#### c) Missing Features
+
+Some functionality hasn't been implemented yet.
+
+- **Missing feature**: Remove/delete button for removing selected species from the multi-select
+- **Test failing**: "should allow removing a selected species"
+- **Hint**: You'll need to add a way to remove individual species (maybe delete icons on the Chips?)
 
 ### 2. Improve Styling 🎨
 
 The current styling is minimal. Enhance the UI/UX by:
 
 - Adding better color schemes and visual hierarchy
-- Improving button and input field styling
+- Improving the volume input cards appearance
 - Making the application responsive for mobile devices
-- Adding hover states and transitions
-- Improving the table appearance
+- Adding hover states and transitions for interactive elements
+- Improving the annual summary display
 - Better styling for the advanced settings section
+- Adding visual feedback when species are selected/deselected
+- Making the multi-select dropdown more visually appealing
 
 ### 3. Add Features ✨
 
 Consider adding these improvements:
 
-- Clear all button to reset the entire table
-- Edit functionality for existing animal entries
-- Input validation (prevent negative numbers, required fields)
-- Export data to CSV
-- Better error handling and user feedback
-- Persistent storage (localStorage)
-- Graphical display of labor savings
-- Summary statistics panel
+- **Clear all button** to deselect all species and reset inputs
+- **Remove individual species** functionality (currently missing!)
+- **Input validation** (prevent negative numbers, max reasonable values)
+- **Export functionality** to save annual projections as CSV/PDF
+- **Better error handling** and user feedback messages
+- **Persistent storage** (localStorage) to save calculator state
+- **Charts/graphs** to visualize savings vs costs
+- **Comparison mode** to compare different scenarios side-by-side
+- **Species presets** for common processor types (beef-focused, mixed, etc.)
+- **Monthly breakdown** in addition to annual totals
 
 ### 4. Code Quality 📝
 
@@ -128,26 +162,79 @@ Consider adding these improvements:
 ```
 farmshare-intern-dev-project/
 ├── src/
-│   ├── App.tsx           # Main calculator component
-│   ├── App.test.tsx      # Test file (some tests are failing!)
-│   ├── App.css           # Styles (needs improvement!)
-│   └── setupTests.ts     # Test configuration
+│   ├── App.tsx                      # Main calculator component
+│   ├── App.test.tsx                 # Integration tests (4/7 failing)
+│   ├── App.css                      # Styles (needs improvement!)
+│   ├── types.ts                     # TypeScript types and constants
+│   └── utils/
+│       ├── calculations.ts          # Calculation functions (has bugs!)
+│       └── calculations.test.ts     # Unit tests (10/18 failing)
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml    # GitHub Pages deployment
+│       └── deploy.yml               # GitHub Pages deployment
 ├── package.json
 ├── vite.config.ts
 └── vitest.config.ts
 ```
+
+## How the Application Works
+
+1. **Multi-Select Dropdown**: Choose one or more animal species from the dropdown (Beef, Hog, Bison, Lamb, Goat, Venison, Yak, Veal)
+2. **Volume Input Cards**: For each selected species, enter the total annual hanging weight in pounds
+3. **Predefined Average Weights**: The app uses industry-standard average hanging weights per species (e.g., Beef: 500 lbs, Hog: 200 lbs)
+4. **Calculations**:
+   - **Animals Processed**: Total weight ÷ average weight per animal
+   - **Labor Savings**: Number of animals × time saved per animal × hourly wage
+   - **Platform Cost**: Total weight × $0.02/lb
+   - **Net Benefit**: Labor savings - platform cost
+5. **Annual Summary**: Displays total volume, savings, costs, and net benefit across all selected species
+
+## Understanding the Tests
+
+### Unit Tests (`src/utils/calculations.test.ts`) - 18 tests
+
+Tests the pure calculation functions:
+
+- `calculateHeads()`: Converts total weight to number of animals
+- `calculateLaborValue()`: Calculates dollar value of time saved
+- `calculateTotalHeads()`: Sums heads across multiple species
+- `calculateTotalLaborValue()`: Sums labor value across multiple species
+
+**Current status**: 10 failing, 8 passing
+**Why failing**: Bug in `calculateHeads()` function AND some tests have wrong expected values
+
+### Integration Tests (`src/App.test.tsx`) - 7 tests
+
+Tests the full React component:
+
+- Rendering the UI elements
+- Multi-select dropdown interaction
+- Volume input display
+- Calculation results display
+- Advanced settings toggle
+- Species selection/removal
+
+**Current status**: 4 failing, 3 passing
+**Why failing**: Tests looking for wrong text AND missing remove functionality
+
+## Debugging Tips
+
+1. **Start with the unit tests**: Fix the calculation bug first, as it affects many tests
+2. **Read error messages carefully**: Test failures tell you exactly what's expected vs. what you got
+3. **Use `yarn test` frequently**: Run tests after each change to see progress
+4. **Use `console.log()`**: Add logging to understand what values functions are returning
+5. **Check the browser console**: Run `yarn dev` and check for runtime errors
+6. **Compare test expectations with actual output**: Some tests might be checking for wrong values
 
 ## Evaluation Criteria
 
 Your submission will be evaluated on:
 
 1. **Functionality** (40%)
-   - All tests passing
+   - All tests passing (should be 24/25 - one is intentionally hard)
    - New features work correctly
    - No console errors
+   - Calculations are accurate
 
 2. **Code Quality** (25%)
    - Clean, readable code
