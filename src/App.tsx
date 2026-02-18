@@ -9,6 +9,7 @@ import {
   ComparisonPanel,
   ClearAllDialog,
   MonthlyBreakdown,
+  ProjectionChart,
   SpeciesPresetsBar,
   SpeciesSelectField,
   VolumeInputsSection,
@@ -304,6 +305,7 @@ function App() {
               monthlyCost={currentProjection.totals.monthlyCost}
               monthlyNetBenefit={currentProjection.totals.monthlyNetBenefit}
             />
+            <ProjectionChart projection={currentProjection} />
             <ComparisonPanel
               scenarioA={comparison.A}
               scenarioB={comparison.B}
