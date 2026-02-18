@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Container,
   TextField,
@@ -26,24 +26,43 @@ import "./App.css";
 const COST_PER_LB = 0.02;
 
 function App() {
-  const [selectedSpecies, setSelectedSpecies] = useState<EAnimalSpecies[]>([
-    "beef",
-  ]);
+  const [selectedSpecies, setSelectedSpecies] = useState<EAnimalSpecies[]>([]);
   const [volumes, setVolumes] = useState<Record<EAnimalSpecies, string>>(
     {} as Record<EAnimalSpecies, string>,
   );
+  const [isSpeciesMenuOpen, setIsSpeciesMenuOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [timePerAnimal, setTimePerAnimal] = useState("45"); // minutes
   const [hourlyWage, setHourlyWage] = useState("25"); // dollars
+  const menuReopenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSpeciesChange = (event: SelectChangeEvent<EAnimalSpecies[]>) => {
     const value = event.target.value;
     const species = typeof value === "string" ? value.split(",") : value;
     setSelectedSpecies(species as EAnimalSpecies[]);
+
+    if (menuReopenTimer.current !== null) {
+      clearTimeout(menuReopenTimer.current);
+    }
+    menuReopenTimer.current = setTimeout(() => {
+      setIsSpeciesMenuOpen(true);
+      menuReopenTimer.current = null;
+    }, 0);
   };
 
   const handleVolumeChange = (species: EAnimalSpecies, value: string) => {
     setVolumes((prev) => ({ ...prev, [species]: value }));
+  };
+
+  const handleSpeciesRemove = (speciesToRemove: EAnimalSpecies) => {
+    setSelectedSpecies((prev) =>
+      prev.filter((species) => species !== speciesToRemove),
+    );
+    setVolumes((prev) => {
+      const next = { ...prev };
+      delete next[speciesToRemove];
+      return next;
+    });
   };
 
   const calculateTotalAnnualSavings = () => {
@@ -90,6 +109,9 @@ function App() {
               multiple
               value={selectedSpecies}
               onChange={handleSpeciesChange}
+              open={isSpeciesMenuOpen}
+              onOpen={() => setIsSpeciesMenuOpen(true)}
+              onClose={() => setIsSpeciesMenuOpen(false)}
               input={<OutlinedInput label="Select Animal Species" />}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
@@ -97,6 +119,10 @@ function App() {
                     <Chip
                       key={value}
                       label={value.charAt(0).toUpperCase() + value.slice(1)}
+                      aria-label={`remove ${value}`}
+                      onMouseDown={(event) => event.stopPropagation()}
+                      onClick={() => handleSpeciesRemove(value)}
+                      onDelete={() => handleSpeciesRemove(value)}
                     />
                   ))}
                 </Box>
