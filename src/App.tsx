@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Container, Typography, Box, Paper } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
-import type { CalculatorInputs, ComparisonState, EAnimalSpecies } from "./types";
+import type { CalculatorInputs, EAnimalSpecies } from "./types";
 import {
   AdvancedSettingsPanel,
   AnnualSummary,
@@ -15,8 +15,6 @@ import {
   VolumeInputsSection,
 } from "./components";
 import {
-  DEFAULT_HOURLY_WAGE,
-  DEFAULT_TIME_PER_ANIMAL_MINUTES,
   MAX_ANNUAL_VOLUME,
   MAX_HOURLY_WAGE,
   MAX_TIME_PER_ANIMAL_MINUTES,
@@ -31,6 +29,12 @@ import {
   loadPersistedState,
   persistState,
 } from "./utils/storage";
+import {
+  calculatorReducer,
+  createInitialCalculatorState,
+  isDefaultCalculatorState,
+  type ScenarioSlot,
+} from "./state/calculatorReducer";
 import { calculateProjection } from "./utils/projection";
 import { createProjectionCsv, downloadCsv } from "./utils/export";
 import { printProjectionReport } from "./utils/print";
@@ -38,26 +42,22 @@ import "./App.css";
 
 function App() {
   const initialPersistedState = useMemo(() => loadPersistedState(), []);
-  const [selectedSpecies, setSelectedSpecies] = useState<EAnimalSpecies[]>(
-    () => initialPersistedState?.selectedSpecies ?? [],
+  const [calculatorState, dispatch] = useReducer(
+    calculatorReducer,
+    initialPersistedState,
+    createInitialCalculatorState,
   );
-  const [volumes, setVolumes] = useState<Partial<Record<EAnimalSpecies, string>>>(
-    () => initialPersistedState?.volumes ?? {},
-  );
+  const {
+    selectedSpecies,
+    volumes,
+    showAdvanced,
+    timePerAnimal,
+    hourlyWage,
+    comparison,
+  } = calculatorState;
+
   const [isSpeciesMenuOpen, setIsSpeciesMenuOpen] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(
-    () => initialPersistedState?.showAdvanced ?? false,
-  );
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
-  const [timePerAnimal, setTimePerAnimal] = useState(
-    () => initialPersistedState?.timePerAnimal ?? DEFAULT_TIME_PER_ANIMAL_MINUTES,
-  );
-  const [hourlyWage, setHourlyWage] = useState(
-    () => initialPersistedState?.hourlyWage ?? DEFAULT_HOURLY_WAGE,
-  );
-  const [comparison, setComparison] = useState<ComparisonState>(
-    () => initialPersistedState?.comparison ?? { A: null, B: null },
-  );
   const menuReopenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasPersistedInitialState = useRef(false);
   const currentInputs = useMemo<CalculatorInputs>(
@@ -86,14 +86,7 @@ function App() {
     [comparison.B],
   );
   const hasErrors = hasValidationErrors(validationErrors);
-  const isAtDefaults =
-    selectedSpecies.length === 0 &&
-    Object.keys(volumes).length === 0 &&
-    timePerAnimal === DEFAULT_TIME_PER_ANIMAL_MINUTES &&
-    hourlyWage === DEFAULT_HOURLY_WAGE &&
-    !showAdvanced &&
-    comparison.A === null &&
-    comparison.B === null;
+  const isAtDefaults = isDefaultCalculatorState(calculatorState);
 
   useEffect(() => {
     if (!hasPersistedInitialState.current) {
@@ -101,27 +94,16 @@ function App() {
       return;
     }
 
-    persistState({
-      selectedSpecies,
-      volumes,
-      timePerAnimal,
-      hourlyWage,
-      showAdvanced,
-      comparison,
-    });
-  }, [
-    selectedSpecies,
-    volumes,
-    timePerAnimal,
-    hourlyWage,
-    showAdvanced,
-    comparison,
-  ]);
+    persistState(calculatorState);
+  }, [calculatorState]);
 
   const handleSpeciesChange = (event: SelectChangeEvent<EAnimalSpecies[]>) => {
     const value = event.target.value;
     const species = typeof value === "string" ? value.split(",") : value;
-    setSelectedSpecies(species as EAnimalSpecies[]);
+    dispatch({
+      type: "setSelectedSpecies",
+      payload: species as EAnimalSpecies[],
+    });
 
     if (menuReopenTimer.current !== null) {
       clearTimeout(menuReopenTimer.current);
@@ -133,17 +115,16 @@ function App() {
   };
 
   const handleVolumeChange = (species: EAnimalSpecies, value: string) => {
-    setVolumes((prev) => ({ ...prev, [species]: value }));
+    dispatch({
+      type: "setVolume",
+      payload: { species, value },
+    });
   };
 
   const handleSpeciesRemove = (speciesToRemove: EAnimalSpecies) => {
-    setSelectedSpecies((prev) =>
-      prev.filter((species) => species !== speciesToRemove),
-    );
-    setVolumes((prev) => {
-      const next = { ...prev };
-      delete next[speciesToRemove];
-      return next;
+    dispatch({
+      type: "removeSpecies",
+      payload: speciesToRemove,
     });
   };
 
@@ -153,19 +134,16 @@ function App() {
       return;
     }
 
-    setSelectedSpecies(preset.species);
-    setVolumes(preset.volumes);
+    dispatch({
+      type: "applyPreset",
+      payload: preset,
+    });
     setIsSpeciesMenuOpen(false);
   };
 
   const resetToDefaults = () => {
-    setSelectedSpecies([]);
-    setVolumes({});
-    setTimePerAnimal(DEFAULT_TIME_PER_ANIMAL_MINUTES);
-    setHourlyWage(DEFAULT_HOURLY_WAGE);
-    setShowAdvanced(false);
+    dispatch({ type: "resetDefaults" });
     setIsSpeciesMenuOpen(false);
-    setComparison({ A: null, B: null });
   };
 
   const handleOpenClearAll = () => {
@@ -186,28 +164,21 @@ function App() {
     resetToDefaults();
   };
 
-  const handleSaveScenario = (slot: "A" | "B") => {
-    const snapshotInputs: CalculatorInputs = {
-      selectedSpecies: [...selectedSpecies],
-      volumes: { ...volumes },
-      timePerAnimal,
-      hourlyWage,
-    };
-
-    setComparison((prev) => ({
-      ...prev,
-      [slot]: {
-        inputs: snapshotInputs,
+  const handleSaveScenario = (slot: ScenarioSlot) => {
+    dispatch({
+      type: "saveScenario",
+      payload: {
+        slot,
         capturedAt: new Date().toISOString(),
       },
-    }));
+    });
   };
 
-  const handleClearScenario = (slot: "A" | "B") => {
-    setComparison((prev) => ({
-      ...prev,
-      [slot]: null,
-    }));
+  const handleClearScenario = (slot: ScenarioSlot) => {
+    dispatch({
+      type: "clearScenario",
+      payload: slot,
+    });
   };
 
   const handleExportCsv = () => {
@@ -285,9 +256,24 @@ function App() {
               hourlyWageError={validationErrors.hourlyWage}
               maxTimePerAnimal={MAX_TIME_PER_ANIMAL_MINUTES}
               maxHourlyWage={MAX_HOURLY_WAGE}
-              onToggleAdvanced={() => setShowAdvanced(!showAdvanced)}
-              onTimePerAnimalChange={setTimePerAnimal}
-              onHourlyWageChange={setHourlyWage}
+              onToggleAdvanced={() =>
+                dispatch({
+                  type: "setShowAdvanced",
+                  payload: !showAdvanced,
+                })
+              }
+              onTimePerAnimalChange={(value) =>
+                dispatch({
+                  type: "setTimePerAnimal",
+                  payload: value,
+                })
+              }
+              onHourlyWageChange={(value) =>
+                dispatch({
+                  type: "setHourlyWage",
+                  payload: value,
+                })
+              }
             />
           </Paper>
 
