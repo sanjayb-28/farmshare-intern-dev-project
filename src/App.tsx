@@ -9,6 +9,7 @@ import {
   AnnualSummary,
   CalculatorActionsBar,
   ClearAllDialog,
+  SpeciesPresetsBar,
   SpeciesSelectField,
   VolumeInputsSection,
 } from "./components";
@@ -20,6 +21,7 @@ import {
   MAX_HOURLY_WAGE,
   MAX_TIME_PER_ANIMAL_MINUTES,
 } from "./constants/calculator";
+import { SPECIES_PRESETS } from "./constants/presets";
 import {
   hasValidationErrors,
   parseNonNegativeNumber,
@@ -121,6 +123,17 @@ function App() {
     });
   };
 
+  const handleApplyPreset = (presetId: string) => {
+    const preset = SPECIES_PRESETS.find((entry) => entry.id === presetId);
+    if (!preset) {
+      return;
+    }
+
+    setSelectedSpecies(preset.species);
+    setVolumes(preset.volumes);
+    setIsSpeciesMenuOpen(false);
+  };
+
   const resetToDefaults = () => {
     setSelectedSpecies([]);
     setVolumes({});
@@ -205,6 +218,7 @@ function App() {
         </Typography>
 
         <Paper sx={{ p: 2, mb: 3 }}>
+          <SpeciesPresetsBar onApplyPreset={handleApplyPreset} />
           <SpeciesSelectField
             selectedSpecies={selectedSpecies}
             isSpeciesMenuOpen={isSpeciesMenuOpen}
