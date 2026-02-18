@@ -9,6 +9,7 @@ import {
   AnnualSummary,
   CalculatorActionsBar,
   ClearAllDialog,
+  MonthlyBreakdown,
   SpeciesPresetsBar,
   SpeciesSelectField,
   VolumeInputsSection,
@@ -66,6 +67,65 @@ function App() {
     [selectedSpecies, volumes, timePerAnimal, hourlyWage],
   );
   const hasErrors = hasValidationErrors(validationErrors);
+  const projectionRows = useMemo(
+    () =>
+      selectedSpecies.map((species) => {
+        const annualVolume = validationErrors.volumes[species]
+          ? 0
+          : parseNonNegativeNumber(volumes[species] || "");
+        const annualHeads =
+          annualVolume > 0
+            ? calculateHeads(annualVolume, AVG_HANGING_WEIGHTS[species])
+            : 0;
+        const annualSavings = calculateLaborValue(
+          annualHeads,
+          validationErrors.timePerAnimal ? 0 : parseNonNegativeNumber(timePerAnimal),
+          validationErrors.hourlyWage ? 0 : parseNonNegativeNumber(hourlyWage),
+        );
+        const annualCost = annualVolume * COST_PER_LB;
+        const annualNetBenefit = annualSavings - annualCost;
+
+        return {
+          species,
+          annualHeads,
+          annualVolume,
+          annualSavings,
+          annualCost,
+          annualNetBenefit,
+          monthlyVolume: annualVolume / 12,
+          monthlySavings: annualSavings / 12,
+          monthlyCost: annualCost / 12,
+          monthlyNetBenefit: annualNetBenefit / 12,
+        };
+      }),
+    [selectedSpecies, volumes, timePerAnimal, hourlyWage, validationErrors],
+  );
+  const projectionTotals = useMemo(
+    () =>
+      projectionRows.reduce(
+        (totals, row) => ({
+          annualVolume: totals.annualVolume + row.annualVolume,
+          annualSavings: totals.annualSavings + row.annualSavings,
+          annualCost: totals.annualCost + row.annualCost,
+          annualNetBenefit: totals.annualNetBenefit + row.annualNetBenefit,
+          monthlyVolume: totals.monthlyVolume + row.monthlyVolume,
+          monthlySavings: totals.monthlySavings + row.monthlySavings,
+          monthlyCost: totals.monthlyCost + row.monthlyCost,
+          monthlyNetBenefit: totals.monthlyNetBenefit + row.monthlyNetBenefit,
+        }),
+        {
+          annualVolume: 0,
+          annualSavings: 0,
+          annualCost: 0,
+          annualNetBenefit: 0,
+          monthlyVolume: 0,
+          monthlySavings: 0,
+          monthlyCost: 0,
+          monthlyNetBenefit: 0,
+        },
+      ),
+    [projectionRows],
+  );
   const isAtDefaults =
     selectedSpecies.length === 0 &&
     Object.keys(volumes).length === 0 &&
@@ -161,55 +221,6 @@ function App() {
     resetToDefaults();
   };
 
-  const calculateTotalAnnualSavings = () => {
-    const parsedTimePerAnimal = validationErrors.timePerAnimal
-      ? 0
-      : parseNonNegativeNumber(timePerAnimal);
-    const parsedHourlyWage = validationErrors.hourlyWage
-      ? 0
-      : parseNonNegativeNumber(hourlyWage);
-
-    return selectedSpecies.reduce((total, species) => {
-      if (validationErrors.volumes[species]) {
-        return total;
-      }
-
-      const volume = parseNonNegativeNumber(volumes[species] || "");
-      if (volume > 0) {
-        const avgWeight = AVG_HANGING_WEIGHTS[species];
-        const heads = calculateHeads(volume, avgWeight);
-        const savings = calculateLaborValue(
-          heads,
-          parsedTimePerAnimal,
-          parsedHourlyWage,
-        );
-        return total + savings;
-      }
-      return total;
-    }, 0);
-  };
-
-  const calculateTotalAnnualCost = () => {
-    return selectedSpecies.reduce((total, species) => {
-      if (validationErrors.volumes[species]) {
-        return total;
-      }
-
-      const volume = parseNonNegativeNumber(volumes[species] || "");
-      return total + volume * COST_PER_LB;
-    }, 0);
-  };
-
-  const getTotalVolume = () => {
-    return selectedSpecies.reduce((total, species) => {
-      if (validationErrors.volumes[species]) {
-        return total;
-      }
-
-      return total + parseNonNegativeNumber(volumes[species] || "");
-    }, 0);
-  };
-
   return (
     <Container>
       <Box sx={{ my: 4 }}>
@@ -256,10 +267,17 @@ function App() {
         </Paper>
 
         <AnnualSummary
-          totalAnnualVolume={getTotalVolume()}
-          totalAnnualSavings={calculateTotalAnnualSavings()}
-          totalAnnualCost={calculateTotalAnnualCost()}
+          totalAnnualVolume={projectionTotals.annualVolume}
+          totalAnnualSavings={projectionTotals.annualSavings}
+          totalAnnualCost={projectionTotals.annualCost}
           hasErrors={hasErrors}
+        />
+        <MonthlyBreakdown
+          rows={projectionRows}
+          monthlyVolume={projectionTotals.monthlyVolume}
+          monthlySavings={projectionTotals.monthlySavings}
+          monthlyCost={projectionTotals.monthlyCost}
+          monthlyNetBenefit={projectionTotals.monthlyNetBenefit}
         />
         <ClearAllDialog
           open={showClearAllDialog}
