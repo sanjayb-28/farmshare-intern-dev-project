@@ -31,6 +31,8 @@ import {
   persistState,
 } from "./utils/storage";
 import { calculateProjection } from "./utils/projection";
+import { createProjectionCsv, downloadCsv } from "./utils/export";
+import { printProjectionReport } from "./utils/print";
 import "./App.css";
 
 function App() {
@@ -207,6 +209,16 @@ function App() {
     }));
   };
 
+  const handleExportCsv = () => {
+    const csvContent = createProjectionCsv(currentProjection, currentInputs);
+    const fileDate = new Date().toISOString().slice(0, 10);
+    downloadCsv(`farmshare-projection-${fileDate}.csv`, csvContent);
+  };
+
+  const handlePrintReport = () => {
+    printProjectionReport(currentProjection, currentInputs);
+  };
+
   return (
     <Container
       maxWidth={false}
@@ -259,6 +271,9 @@ function App() {
               isClearAllDisabled={isAtDefaults}
               onOpenClearAll={handleOpenClearAll}
               onResetSavedData={handleResetSavedData}
+              onExportCsv={handleExportCsv}
+              onPrintReport={handlePrintReport}
+              isExportDisabled={currentProjection.rows.length === 0}
             />
 
             <AdvancedSettingsPanel
