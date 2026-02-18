@@ -1,4 +1,5 @@
 export * from "./CalculatorActionsBar";
+export * from "./ComparisonPanel";
 export * from "./ClearAllDialog";
 export * from "./AdvancedSettingsPanel";
 export * from "./AnnualSummary";

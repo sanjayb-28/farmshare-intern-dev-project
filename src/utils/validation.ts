@@ -1,16 +1,9 @@
-import type { EAnimalSpecies } from "../types";
+import type { CalculatorInputs, EAnimalSpecies } from "../types";
 import {
   MAX_ANNUAL_VOLUME,
   MAX_HOURLY_WAGE,
   MAX_TIME_PER_ANIMAL_MINUTES,
 } from "../constants/calculator";
-
-export interface CalculatorInputs {
-  selectedSpecies: EAnimalSpecies[];
-  volumes: Partial<Record<EAnimalSpecies, string>>;
-  timePerAnimal: string;
-  hourlyWage: string;
-}
 
 export interface ValidationErrors {
   volumes: Partial<Record<EAnimalSpecies, string>>;

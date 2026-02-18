@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Container, Typography, Box, Paper } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
-import type { EAnimalSpecies } from "./types";
-import { AVG_HANGING_WEIGHTS } from "./types";
-import { calculateHeads, calculateLaborValue } from "./utils/calculations";
+import type { CalculatorInputs, ComparisonState, EAnimalSpecies } from "./types";
 import {
   AdvancedSettingsPanel,
   AnnualSummary,
   CalculatorActionsBar,
+  ComparisonPanel,
   ClearAllDialog,
   MonthlyBreakdown,
   SpeciesPresetsBar,
@@ -15,7 +14,6 @@ import {
   VolumeInputsSection,
 } from "./components";
 import {
-  COST_PER_LB,
   DEFAULT_HOURLY_WAGE,
   DEFAULT_TIME_PER_ANIMAL_MINUTES,
   MAX_ANNUAL_VOLUME,
@@ -25,7 +23,6 @@ import {
 import { SPECIES_PRESETS } from "./constants/presets";
 import {
   hasValidationErrors,
-  parseNonNegativeNumber,
   validateInputs,
 } from "./utils/validation";
 import {
@@ -33,6 +30,7 @@ import {
   loadPersistedState,
   persistState,
 } from "./utils/storage";
+import { calculateProjection } from "./utils/projection";
 import "./App.css";
 
 function App() {
@@ -54,84 +52,45 @@ function App() {
   const [hourlyWage, setHourlyWage] = useState(
     () => initialPersistedState?.hourlyWage ?? DEFAULT_HOURLY_WAGE,
   );
+  const [comparison, setComparison] = useState<ComparisonState>(
+    () => initialPersistedState?.comparison ?? { A: null, B: null },
+  );
   const menuReopenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasPersistedInitialState = useRef(false);
-  const validationErrors = useMemo(
-    () =>
-      validateInputs({
-        selectedSpecies,
-        volumes,
-        timePerAnimal,
-        hourlyWage,
-      }),
+  const currentInputs = useMemo<CalculatorInputs>(
+    () => ({
+      selectedSpecies,
+      volumes,
+      timePerAnimal,
+      hourlyWage,
+    }),
     [selectedSpecies, volumes, timePerAnimal, hourlyWage],
   );
+  const validationErrors = useMemo(
+    () => validateInputs(currentInputs),
+    [currentInputs],
+  );
+  const currentProjection = useMemo(
+    () => calculateProjection(currentInputs),
+    [currentInputs],
+  );
+  const scenarioAProjection = useMemo(
+    () => (comparison.A ? calculateProjection(comparison.A.inputs) : null),
+    [comparison.A],
+  );
+  const scenarioBProjection = useMemo(
+    () => (comparison.B ? calculateProjection(comparison.B.inputs) : null),
+    [comparison.B],
+  );
   const hasErrors = hasValidationErrors(validationErrors);
-  const projectionRows = useMemo(
-    () =>
-      selectedSpecies.map((species) => {
-        const annualVolume = validationErrors.volumes[species]
-          ? 0
-          : parseNonNegativeNumber(volumes[species] || "");
-        const annualHeads =
-          annualVolume > 0
-            ? calculateHeads(annualVolume, AVG_HANGING_WEIGHTS[species])
-            : 0;
-        const annualSavings = calculateLaborValue(
-          annualHeads,
-          validationErrors.timePerAnimal ? 0 : parseNonNegativeNumber(timePerAnimal),
-          validationErrors.hourlyWage ? 0 : parseNonNegativeNumber(hourlyWage),
-        );
-        const annualCost = annualVolume * COST_PER_LB;
-        const annualNetBenefit = annualSavings - annualCost;
-
-        return {
-          species,
-          annualHeads,
-          annualVolume,
-          annualSavings,
-          annualCost,
-          annualNetBenefit,
-          monthlyVolume: annualVolume / 12,
-          monthlySavings: annualSavings / 12,
-          monthlyCost: annualCost / 12,
-          monthlyNetBenefit: annualNetBenefit / 12,
-        };
-      }),
-    [selectedSpecies, volumes, timePerAnimal, hourlyWage, validationErrors],
-  );
-  const projectionTotals = useMemo(
-    () =>
-      projectionRows.reduce(
-        (totals, row) => ({
-          annualVolume: totals.annualVolume + row.annualVolume,
-          annualSavings: totals.annualSavings + row.annualSavings,
-          annualCost: totals.annualCost + row.annualCost,
-          annualNetBenefit: totals.annualNetBenefit + row.annualNetBenefit,
-          monthlyVolume: totals.monthlyVolume + row.monthlyVolume,
-          monthlySavings: totals.monthlySavings + row.monthlySavings,
-          monthlyCost: totals.monthlyCost + row.monthlyCost,
-          monthlyNetBenefit: totals.monthlyNetBenefit + row.monthlyNetBenefit,
-        }),
-        {
-          annualVolume: 0,
-          annualSavings: 0,
-          annualCost: 0,
-          annualNetBenefit: 0,
-          monthlyVolume: 0,
-          monthlySavings: 0,
-          monthlyCost: 0,
-          monthlyNetBenefit: 0,
-        },
-      ),
-    [projectionRows],
-  );
   const isAtDefaults =
     selectedSpecies.length === 0 &&
     Object.keys(volumes).length === 0 &&
     timePerAnimal === DEFAULT_TIME_PER_ANIMAL_MINUTES &&
     hourlyWage === DEFAULT_HOURLY_WAGE &&
-    !showAdvanced;
+    !showAdvanced &&
+    comparison.A === null &&
+    comparison.B === null;
 
   useEffect(() => {
     if (!hasPersistedInitialState.current) {
@@ -145,6 +104,7 @@ function App() {
       timePerAnimal,
       hourlyWage,
       showAdvanced,
+      comparison,
     });
   }, [
     selectedSpecies,
@@ -152,6 +112,7 @@ function App() {
     timePerAnimal,
     hourlyWage,
     showAdvanced,
+    comparison,
   ]);
 
   const handleSpeciesChange = (event: SelectChangeEvent<EAnimalSpecies[]>) => {
@@ -201,6 +162,7 @@ function App() {
     setHourlyWage(DEFAULT_HOURLY_WAGE);
     setShowAdvanced(false);
     setIsSpeciesMenuOpen(false);
+    setComparison({ A: null, B: null });
   };
 
   const handleOpenClearAll = () => {
@@ -221,64 +183,123 @@ function App() {
     resetToDefaults();
   };
 
+  const handleSaveScenario = (slot: "A" | "B") => {
+    const snapshotInputs: CalculatorInputs = {
+      selectedSpecies: [...selectedSpecies],
+      volumes: { ...volumes },
+      timePerAnimal,
+      hourlyWage,
+    };
+
+    setComparison((prev) => ({
+      ...prev,
+      [slot]: {
+        inputs: snapshotInputs,
+        capturedAt: new Date().toISOString(),
+      },
+    }));
+  };
+
+  const handleClearScenario = (slot: "A" | "B") => {
+    setComparison((prev) => ({
+      ...prev,
+      [slot]: null,
+    }));
+  };
+
   return (
-    <Container>
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+    <Container
+      maxWidth={false}
+      sx={{
+        maxWidth: "1680px",
+        px: { xs: 2, sm: 3, md: 4, lg: 5 },
+      }}
+    >
+      <Box className="app-shell" sx={{ my: { xs: 3, md: 4 } }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
           Meat Processor Value Calculator
         </Typography>
 
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <SpeciesPresetsBar onApplyPreset={handleApplyPreset} />
-          <SpeciesSelectField
-            selectedSpecies={selectedSpecies}
-            isSpeciesMenuOpen={isSpeciesMenuOpen}
-            onSpeciesChange={handleSpeciesChange}
-            onSpeciesMenuOpen={() => setIsSpeciesMenuOpen(true)}
-            onSpeciesMenuClose={() => setIsSpeciesMenuOpen(false)}
-            onSpeciesRemove={handleSpeciesRemove}
-          />
+        <Box
+          sx={{
+            display: "grid",
+            gap: 3,
+            gridTemplateColumns: {
+              xs: "1fr",
+              xl: "minmax(380px, 430px) minmax(0, 1fr)",
+            },
+            alignItems: "start",
+          }}
+        >
+          <Paper
+            sx={{
+              p: 2,
+              position: { xl: "sticky" },
+              top: { xl: 24 },
+            }}
+          >
+            <SpeciesPresetsBar onApplyPreset={handleApplyPreset} />
+            <SpeciesSelectField
+              selectedSpecies={selectedSpecies}
+              isSpeciesMenuOpen={isSpeciesMenuOpen}
+              onSpeciesChange={handleSpeciesChange}
+              onSpeciesMenuOpen={() => setIsSpeciesMenuOpen(true)}
+              onSpeciesMenuClose={() => setIsSpeciesMenuOpen(false)}
+              onSpeciesRemove={handleSpeciesRemove}
+            />
 
-          <VolumeInputsSection
-            selectedSpecies={selectedSpecies}
-            volumes={volumes}
-            volumeErrors={validationErrors.volumes}
-            maxAnnualVolume={MAX_ANNUAL_VOLUME}
-            onVolumeChange={handleVolumeChange}
-          />
-          <CalculatorActionsBar
-            isClearAllDisabled={isAtDefaults}
-            onOpenClearAll={handleOpenClearAll}
-            onResetSavedData={handleResetSavedData}
-          />
+            <VolumeInputsSection
+              selectedSpecies={selectedSpecies}
+              volumes={volumes}
+              volumeErrors={validationErrors.volumes}
+              maxAnnualVolume={MAX_ANNUAL_VOLUME}
+              onVolumeChange={handleVolumeChange}
+            />
+            <CalculatorActionsBar
+              isClearAllDisabled={isAtDefaults}
+              onOpenClearAll={handleOpenClearAll}
+              onResetSavedData={handleResetSavedData}
+            />
 
-          <AdvancedSettingsPanel
-            showAdvanced={showAdvanced}
-            timePerAnimal={timePerAnimal}
-            hourlyWage={hourlyWage}
-            timePerAnimalError={validationErrors.timePerAnimal}
-            hourlyWageError={validationErrors.hourlyWage}
-            maxTimePerAnimal={MAX_TIME_PER_ANIMAL_MINUTES}
-            maxHourlyWage={MAX_HOURLY_WAGE}
-            onToggleAdvanced={() => setShowAdvanced(!showAdvanced)}
-            onTimePerAnimalChange={setTimePerAnimal}
-            onHourlyWageChange={setHourlyWage}
-          />
-        </Paper>
+            <AdvancedSettingsPanel
+              showAdvanced={showAdvanced}
+              timePerAnimal={timePerAnimal}
+              hourlyWage={hourlyWage}
+              timePerAnimalError={validationErrors.timePerAnimal}
+              hourlyWageError={validationErrors.hourlyWage}
+              maxTimePerAnimal={MAX_TIME_PER_ANIMAL_MINUTES}
+              maxHourlyWage={MAX_HOURLY_WAGE}
+              onToggleAdvanced={() => setShowAdvanced(!showAdvanced)}
+              onTimePerAnimalChange={setTimePerAnimal}
+              onHourlyWageChange={setHourlyWage}
+            />
+          </Paper>
 
-        <AnnualSummary
-          totalAnnualVolume={projectionTotals.annualVolume}
-          totalAnnualSavings={projectionTotals.annualSavings}
-          totalAnnualCost={projectionTotals.annualCost}
-          hasErrors={hasErrors}
-        />
-        <MonthlyBreakdown
-          rows={projectionRows}
-          monthlyVolume={projectionTotals.monthlyVolume}
-          monthlySavings={projectionTotals.monthlySavings}
-          monthlyCost={projectionTotals.monthlyCost}
-          monthlyNetBenefit={projectionTotals.monthlyNetBenefit}
-        />
+          <Box sx={{ display: "grid", gap: 3 }}>
+            <AnnualSummary
+              totalAnnualVolume={currentProjection.totals.annualVolume}
+              totalAnnualSavings={currentProjection.totals.annualSavings}
+              totalAnnualCost={currentProjection.totals.annualCost}
+              hasErrors={hasErrors}
+            />
+            <MonthlyBreakdown
+              rows={currentProjection.rows}
+              monthlyVolume={currentProjection.totals.monthlyVolume}
+              monthlySavings={currentProjection.totals.monthlySavings}
+              monthlyCost={currentProjection.totals.monthlyCost}
+              monthlyNetBenefit={currentProjection.totals.monthlyNetBenefit}
+            />
+            <ComparisonPanel
+              scenarioA={comparison.A}
+              scenarioB={comparison.B}
+              projectionA={scenarioAProjection}
+              projectionB={scenarioBProjection}
+              onSaveScenario={handleSaveScenario}
+              onClearScenario={handleClearScenario}
+            />
+          </Box>
+        </Box>
+
         <ClearAllDialog
           open={showClearAllDialog}
           onCancel={handleCloseClearAll}

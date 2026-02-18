@@ -1,17 +1,27 @@
 import { EAnimalSpecies } from "../types";
-import type { EAnimalSpecies as AnimalSpecies } from "../types";
+import type {
+  CalculatorInputs,
+  ComparisonState,
+  EAnimalSpecies as AnimalSpecies,
+  ScenarioSnapshot,
+} from "../types";
 
 const STORAGE_KEY = "farmshare-calculator-state";
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 2;
 
 const VALID_SPECIES = new Set<string>(Object.values(EAnimalSpecies));
+const DEFAULT_COMPARISON_STATE: ComparisonState = {
+  A: null,
+  B: null,
+};
 
 export interface PersistedCalculatorState {
-  selectedSpecies: AnimalSpecies[];
-  volumes: Partial<Record<AnimalSpecies, string>>;
-  timePerAnimal: string;
-  hourlyWage: string;
+  selectedSpecies: CalculatorInputs["selectedSpecies"];
+  volumes: CalculatorInputs["volumes"];
+  timePerAnimal: CalculatorInputs["timePerAnimal"];
+  hourlyWage: CalculatorInputs["hourlyWage"];
   showAdvanced: boolean;
+  comparison: ComparisonState;
 }
 
 interface PersistedPayload {
@@ -48,7 +58,7 @@ const sanitizeVolumes = (
   return Object.fromEntries(entries) as Partial<Record<AnimalSpecies, string>>;
 };
 
-const sanitizeState = (value: unknown): PersistedCalculatorState | null => {
+const sanitizeInputs = (value: unknown): CalculatorInputs | null => {
   if (!isObjectRecord(value)) {
     return null;
   }
@@ -61,16 +71,66 @@ const sanitizeState = (value: unknown): PersistedCalculatorState | null => {
     return null;
   }
 
-  if (typeof value.showAdvanced !== "boolean") {
-    return null;
-  }
-
   return {
     selectedSpecies: sanitizeSpecies(value.selectedSpecies),
     volumes: sanitizeVolumes(value.volumes),
     timePerAnimal: value.timePerAnimal,
     hourlyWage: value.hourlyWage,
+  };
+};
+
+const sanitizeScenarioSnapshot = (value: unknown): ScenarioSnapshot | null => {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
+
+  if (typeof value.capturedAt !== "string") {
+    return null;
+  }
+
+  const inputs = sanitizeInputs(value.inputs);
+  if (!inputs) {
+    return null;
+  }
+
+  return {
+    inputs,
+    capturedAt: value.capturedAt,
+  };
+};
+
+const sanitizeComparisonState = (value: unknown): ComparisonState => {
+  if (!isObjectRecord(value)) {
+    return { ...DEFAULT_COMPARISON_STATE };
+  }
+
+  return {
+    A: sanitizeScenarioSnapshot(value.A),
+    B: sanitizeScenarioSnapshot(value.B),
+  };
+};
+
+const sanitizeState = (value: unknown): PersistedCalculatorState | null => {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
+
+  if (typeof value.showAdvanced !== "boolean") {
+    return null;
+  }
+
+  const inputs = sanitizeInputs(value);
+  if (!inputs) {
+    return null;
+  }
+
+  return {
+    selectedSpecies: inputs.selectedSpecies,
+    volumes: inputs.volumes,
+    timePerAnimal: inputs.timePerAnimal,
+    hourlyWage: inputs.hourlyWage,
     showAdvanced: value.showAdvanced,
+    comparison: sanitizeComparisonState(value.comparison),
   };
 };
 
