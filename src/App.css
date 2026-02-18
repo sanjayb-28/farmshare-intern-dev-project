@@ -7,26 +7,6 @@
   animation: heroEnter 520ms ease-out both;
 }
 
-.app-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(197, 233, 220, 0.35);
-  color: rgba(228, 246, 239, 0.92);
-  background: linear-gradient(
-    140deg,
-    rgba(63, 121, 104, 0.55) 0%,
-    rgba(52, 88, 118, 0.4) 100%
-  );
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
 .app-title {
   color: #e7f3f1;
   text-shadow: 0 3px 24px rgba(0, 0, 0, 0.35);
@@ -95,5 +75,15 @@
 @media (max-width: 900px) {
   .app-subtitle {
     max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-shell {
+    padding-bottom: 24px;
+  }
+
+  .app-hero {
+    margin-bottom: 16px;
   }
 }

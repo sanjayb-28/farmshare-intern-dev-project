@@ -55,8 +55,14 @@ const ScenarioCard = ({
         sx={{ mb: 1, flexWrap: "wrap", rowGap: 1 }}
       >
         <Typography variant="h6">{title}</Typography>
-        <Stack direction="row" spacing={1}>
-          <Button size="small" variant="outlined" onClick={onSave} startIcon={<SaveOutlinedIcon />}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ width: { xs: "100%", sm: "auto" } }}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={onSave}
+            startIcon={<SaveOutlinedIcon />}
+            fullWidth
+          >
             Save
           </Button>
           <Button
@@ -65,6 +71,7 @@ const ScenarioCard = ({
             onClick={onClear}
             disabled={!scenario}
             startIcon={<DeleteOutlineIcon />}
+            fullWidth
           >
             Clear
           </Button>
@@ -112,7 +119,7 @@ export const ComparisonPanel = ({
       : null;
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 3 }}>
+    <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
         <CompareArrowsOutlinedIcon color="primary" />
         <Typography variant="h5" gutterBottom>

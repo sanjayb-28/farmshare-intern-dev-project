@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Container, Typography, Box, Paper } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
-import AgricultureOutlinedIcon from "@mui/icons-material/AgricultureOutlined";
 import type { CalculatorInputs, EAnimalSpecies } from "./types";
 import {
   AdvancedSettingsPanel,
@@ -196,28 +195,26 @@ function App() {
     <Container
       maxWidth={false}
       sx={{
+        width: "100%",
         maxWidth: "1680px",
-        px: { xs: 2, sm: 3, md: 4, lg: 5 },
+        px: { xs: 1.25, sm: 3, md: 4, lg: 5 },
+        overflow: "hidden",
       }}
     >
       <Box className="app-shell" sx={{ my: { xs: 3, md: 4 } }}>
         <Box className="app-hero">
-          <Box className="app-eyebrow">
-            <AgricultureOutlinedIcon fontSize="small" />
-            Farmshare Operations Workspace
-          </Box>
           <Typography
             className="app-title"
             variant="h4"
             component="h1"
             gutterBottom
-            sx={{ mb: 1 }}
+            sx={{ mb: 1, fontSize: { xs: "2rem", sm: "2.375rem" } }}
           >
             Meat Processor Value Calculator
           </Typography>
           <Typography className="app-subtitle" variant="body1">
             Estimate annual and monthly impact, compare scenarios, and export
-            results for stakeholder review.
+            results for review.
           </Typography>
         </Box>
 
@@ -230,6 +227,7 @@ function App() {
               xl: "minmax(380px, 430px) minmax(0, 1fr)",
             },
             alignItems: "start",
+            minWidth: 0,
           }}
         >
           <Paper
@@ -238,6 +236,7 @@ function App() {
               p: 2.5,
               position: { xl: "sticky" },
               top: { xl: 24 },
+              minWidth: 0,
             }}
           >
             <SpeciesPresetsBar onApplyPreset={handleApplyPreset} />
@@ -295,7 +294,7 @@ function App() {
             />
           </Paper>
 
-          <Box className="results-grid" sx={{ display: "grid", gap: 3 }}>
+          <Box className="results-grid" sx={{ display: "grid", gap: 3, minWidth: 0 }}>
             <AnnualSummary
               totalAnnualVolume={currentProjection.totals.annualVolume}
               totalAnnualSavings={currentProjection.totals.annualSavings}

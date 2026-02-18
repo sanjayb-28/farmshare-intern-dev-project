@@ -1,7 +1,16 @@
 import { useMemo, useState } from "react";
 import type { MouseEvent } from "react";
-import { Box, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
 import QueryStatsOutlinedIcon from "@mui/icons-material/QueryStatsOutlined";
+import { useTheme } from "@mui/material/styles";
 import { BarChart } from "@mui/x-charts/BarChart";
 import type { ProjectionResult } from "../utils/projection";
 
@@ -37,6 +46,8 @@ const formatSpeciesLabel = (species: string): string =>
   species.charAt(0).toUpperCase() + species.slice(1);
 
 export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [chartView, setChartView] = useState<ChartView>("annual");
   const annualDataset = useMemo(
     () => [
@@ -83,8 +94,17 @@ export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
     }
   };
 
+  const annualHeight = isMobile ? 260 : 320;
+  const monthlyHeight = isMobile ? 300 : 360;
+  const annualMargin = isMobile
+    ? { top: 20, right: 8, bottom: 28, left: 52 }
+    : { top: 40, right: 20, bottom: 35, left: 90 };
+  const monthlyMargin = isMobile
+    ? { top: 20, right: 8, bottom: 28, left: 52 }
+    : { top: 30, right: 20, bottom: 35, left: 90 };
+
   return (
-    <Paper sx={{ p: 3, borderRadius: 3 }}>
+    <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
       <Box
         sx={{
           mb: 2,
@@ -109,14 +129,16 @@ export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
           </Typography>
         </Box>
         <ToggleButtonGroup
-          size="small"
+          size={isMobile ? "medium" : "small"}
           exclusive
           value={chartView}
           onChange={handleChartViewChange}
           aria-label="projection chart view"
           sx={{
+            width: { xs: "100%", sm: "auto" },
             "& .MuiToggleButton-root": {
               px: 1.5,
+              flex: { xs: 1, sm: "none" },
               borderColor: "rgba(18,36,43,0.2)",
               color: "text.secondary",
             },
@@ -154,22 +176,24 @@ export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
                 value == null ? "" : `$${formatCurrency(value)}`,
               colorGetter: ({ dataIndex }) =>
                 annualDataset[dataIndex]?.color ?? METRIC_COLORS.savings,
-              barLabel: (item) =>
-                item.value == null ? null : formatCompactCurrency(item.value),
+              barLabel: isMobile
+                ? undefined
+                : (item) =>
+                    item.value == null ? null : formatCompactCurrency(item.value),
               barLabelPlacement: "outside",
             },
           ]}
           grid={{ horizontal: true }}
           hideLegend
-          height={320}
-          margin={{ top: 40, right: 20, bottom: 35, left: 90 }}
+          height={annualHeight}
+          margin={annualMargin}
           sx={{
             "& .MuiChartsAxis-line, & .MuiChartsAxis-tick": {
               stroke: "rgba(0,0,0,0.35)",
             },
             "& .MuiChartsAxis-tickLabel": {
               fill: "rgba(0,0,0,0.75)",
-              fontSize: 12,
+              fontSize: isMobile ? 11 : 12,
             },
             "& .MuiChartsGrid-horizontalLine": {
               strokeDasharray: "4 4",
@@ -221,15 +245,15 @@ export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
             },
           ]}
           grid={{ horizontal: true }}
-          height={360}
-          margin={{ top: 30, right: 20, bottom: 35, left: 90 }}
+          height={monthlyHeight}
+          margin={monthlyMargin}
           sx={{
             "& .MuiChartsAxis-line, & .MuiChartsAxis-tick": {
               stroke: "rgba(0,0,0,0.35)",
             },
             "& .MuiChartsAxis-tickLabel": {
               fill: "rgba(0,0,0,0.75)",
-              fontSize: 12,
+              fontSize: isMobile ? 11 : 12,
             },
             "& .MuiChartsGrid-horizontalLine": {
               strokeDasharray: "4 4",

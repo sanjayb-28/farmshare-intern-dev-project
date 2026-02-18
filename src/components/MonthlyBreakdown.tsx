@@ -40,6 +40,9 @@ const formatCurrency = (value: number): string =>
     maximumFractionDigits: 2,
   });
 
+const formatSpeciesLabel = (species: EAnimalSpecies): string =>
+  species.charAt(0).toUpperCase() + species.slice(1);
+
 export const MonthlyBreakdown = ({
   rows,
   monthlyVolume,
@@ -86,7 +89,7 @@ export const MonthlyBreakdown = ({
   ];
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 3 }}>
+    <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
         <CalendarMonthOutlinedIcon color="primary" />
         <Typography variant="h5" gutterBottom>
@@ -98,7 +101,8 @@ export const MonthlyBreakdown = ({
         sx={{
           display: "grid",
           gridTemplateColumns: {
-            xs: "1fr 1fr",
+            xs: "1fr",
+            sm: "1fr 1fr",
             md: "repeat(4, minmax(0, 1fr))",
           },
           gap: 1.5,
@@ -131,8 +135,65 @@ export const MonthlyBreakdown = ({
         ))}
       </Box>
 
-      <TableContainer sx={{ borderRadius: 2, border: "1px solid rgba(18,36,43,0.1)" }}>
-        <Table size="small">
+      <Box
+        sx={{
+          display: { xs: "grid", md: "none" },
+          gap: 1.25,
+        }}
+      >
+        {rows.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No species selected.
+          </Typography>
+        ) : (
+          rows.map((row) => (
+            <Box
+              key={row.species}
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                border: "1px solid rgba(18,36,43,0.1)",
+                bgcolor: "rgba(255,255,255,0.45)",
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+                {formatSpeciesLabel(row.species)}
+              </Typography>
+              <Stack spacing={0.25}>
+                <Typography variant="body2" color="text.secondary">
+                  Annual Heads: {row.annualHeads.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Monthly Volume:{" "}
+                  {row.monthlyVolume.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Monthly Savings: ${formatCurrency(row.monthlySavings)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Monthly Cost: ${formatCurrency(row.monthlyCost)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Monthly Net: ${formatCurrency(row.monthlyNetBenefit)}
+                </Typography>
+              </Stack>
+            </Box>
+          ))
+        )}
+      </Box>
+
+      <TableContainer
+        sx={{
+          display: { xs: "none", md: "block" },
+          borderRadius: 2,
+          border: "1px solid rgba(18,36,43,0.1)",
+          overflowX: "auto",
+        }}
+      >
+        <Table size="small" sx={{ minWidth: 700 }}>
           <TableHead>
             <TableRow sx={{ bgcolor: "rgba(47,122,103,0.08)" }}>
               <TableCell>Species</TableCell>
@@ -153,9 +214,7 @@ export const MonthlyBreakdown = ({
             ) : (
               rows.map((row) => (
                 <TableRow key={row.species}>
-                  <TableCell>
-                    {row.species.charAt(0).toUpperCase() + row.species.slice(1)}
-                  </TableCell>
+                  <TableCell>{formatSpeciesLabel(row.species)}</TableCell>
                   <TableCell align="right">
                     {row.annualHeads.toLocaleString()}
                   </TableCell>

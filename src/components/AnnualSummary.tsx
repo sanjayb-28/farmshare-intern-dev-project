@@ -22,7 +22,7 @@ export const AnnualSummary = ({
     });
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 3 }}>
+    <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
         <ShowChartOutlinedIcon color="primary" />
         <Typography variant="h5" gutterBottom>
@@ -33,7 +33,10 @@ export const AnnualSummary = ({
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
             justifyContent: "space-between",
+            gap: { xs: 0.5, sm: 1.5 },
             mb: 1.5,
             pb: 1.25,
             borderBottom: 1,
@@ -53,7 +56,10 @@ export const AnnualSummary = ({
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
             justifyContent: "space-between",
+            gap: { xs: 0.5, sm: 1.5 },
             mb: 2,
             p: 1.25,
             borderRadius: 2,
@@ -73,7 +79,10 @@ export const AnnualSummary = ({
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
             justifyContent: "space-between",
+            gap: { xs: 0.5, sm: 1.5 },
             mb: 2,
             p: 1.25,
             borderRadius: 2,
@@ -91,7 +100,10 @@ export const AnnualSummary = ({
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
             justifyContent: "space-between",
+            gap: { xs: 0.5, sm: 1.5 },
             p: 1.5,
             borderRadius: 2,
             bgcolor: "rgba(47,122,103,0.08)",
@@ -99,7 +111,7 @@ export const AnnualSummary = ({
           }}
         >
           <Typography variant="h6">Net Annual Benefit:</Typography>
-          <Typography variant="h5" fontWeight="bold" color="primary">
+          <Typography variant="h5" fontWeight="bold" color="primary" sx={{ wordBreak: "break-word" }}>
             ${formatCurrency(netAnnualBenefit)}
           </Typography>
         </Box>
