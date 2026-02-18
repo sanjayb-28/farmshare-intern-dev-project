@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Container, Typography, Box, Paper } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import type { EAnimalSpecies } from "./types";
@@ -14,7 +14,15 @@ import {
   COST_PER_LB,
   DEFAULT_HOURLY_WAGE,
   DEFAULT_TIME_PER_ANIMAL_MINUTES,
+  MAX_ANNUAL_VOLUME,
+  MAX_HOURLY_WAGE,
+  MAX_TIME_PER_ANIMAL_MINUTES,
 } from "./constants/calculator";
+import {
+  hasValidationErrors,
+  parseNonNegativeNumber,
+  validateInputs,
+} from "./utils/validation";
 import "./App.css";
 
 function App() {
@@ -29,6 +37,17 @@ function App() {
   );
   const [hourlyWage, setHourlyWage] = useState(DEFAULT_HOURLY_WAGE);
   const menuReopenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const validationErrors = useMemo(
+    () =>
+      validateInputs({
+        selectedSpecies,
+        volumes,
+        timePerAnimal,
+        hourlyWage,
+      }),
+    [selectedSpecies, volumes, timePerAnimal, hourlyWage],
+  );
+  const hasErrors = hasValidationErrors(validationErrors);
 
   const handleSpeciesChange = (event: SelectChangeEvent<EAnimalSpecies[]>) => {
     const value = event.target.value;
@@ -60,15 +79,26 @@ function App() {
   };
 
   const calculateTotalAnnualSavings = () => {
+    const parsedTimePerAnimal = validationErrors.timePerAnimal
+      ? 0
+      : parseNonNegativeNumber(timePerAnimal);
+    const parsedHourlyWage = validationErrors.hourlyWage
+      ? 0
+      : parseNonNegativeNumber(hourlyWage);
+
     return selectedSpecies.reduce((total, species) => {
-      const volume = parseFloat(volumes[species] || "0");
+      if (validationErrors.volumes[species]) {
+        return total;
+      }
+
+      const volume = parseNonNegativeNumber(volumes[species] || "");
       if (volume > 0) {
         const avgWeight = AVG_HANGING_WEIGHTS[species];
         const heads = calculateHeads(volume, avgWeight);
         const savings = calculateLaborValue(
           heads,
-          parseFloat(timePerAnimal),
-          parseFloat(hourlyWage),
+          parsedTimePerAnimal,
+          parsedHourlyWage,
         );
         return total + savings;
       }
@@ -78,14 +108,22 @@ function App() {
 
   const calculateTotalAnnualCost = () => {
     return selectedSpecies.reduce((total, species) => {
-      const volume = parseFloat(volumes[species] || "0");
+      if (validationErrors.volumes[species]) {
+        return total;
+      }
+
+      const volume = parseNonNegativeNumber(volumes[species] || "");
       return total + volume * COST_PER_LB;
     }, 0);
   };
 
   const getTotalVolume = () => {
     return selectedSpecies.reduce((total, species) => {
-      return total + parseFloat(volumes[species] || "0");
+      if (validationErrors.volumes[species]) {
+        return total;
+      }
+
+      return total + parseNonNegativeNumber(volumes[species] || "");
     }, 0);
   };
 
@@ -109,6 +147,8 @@ function App() {
           <VolumeInputsSection
             selectedSpecies={selectedSpecies}
             volumes={volumes}
+            volumeErrors={validationErrors.volumes}
+            maxAnnualVolume={MAX_ANNUAL_VOLUME}
             onVolumeChange={handleVolumeChange}
           />
 
@@ -116,6 +156,10 @@ function App() {
             showAdvanced={showAdvanced}
             timePerAnimal={timePerAnimal}
             hourlyWage={hourlyWage}
+            timePerAnimalError={validationErrors.timePerAnimal}
+            hourlyWageError={validationErrors.hourlyWage}
+            maxTimePerAnimal={MAX_TIME_PER_ANIMAL_MINUTES}
+            maxHourlyWage={MAX_HOURLY_WAGE}
             onToggleAdvanced={() => setShowAdvanced(!showAdvanced)}
             onTimePerAnimalChange={setTimePerAnimal}
             onHourlyWageChange={setHourlyWage}
@@ -126,6 +170,7 @@ function App() {
           totalAnnualVolume={getTotalVolume()}
           totalAnnualSavings={calculateTotalAnnualSavings()}
           totalAnnualCost={calculateTotalAnnualCost()}
+          hasErrors={hasErrors}
         />
       </Box>
     </Container>

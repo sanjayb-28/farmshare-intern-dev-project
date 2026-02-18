@@ -1,15 +1,17 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Alert, Box, Paper, Typography } from "@mui/material";
 
 interface AnnualSummaryProps {
   totalAnnualVolume: number;
   totalAnnualSavings: number;
   totalAnnualCost: number;
+  hasErrors: boolean;
 }
 
 export const AnnualSummary = ({
   totalAnnualVolume,
   totalAnnualSavings,
   totalAnnualCost,
+  hasErrors,
 }: AnnualSummaryProps) => {
   const netAnnualBenefit = totalAnnualSavings - totalAnnualCost;
 
@@ -34,6 +36,11 @@ export const AnnualSummary = ({
             {totalAnnualVolume.toLocaleString()} lbs
           </Typography>
         </Box>
+        {hasErrors && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Resolve invalid values to ensure reliable projections.
+          </Alert>
+        )}
         <Box
           sx={{
             display: "flex",

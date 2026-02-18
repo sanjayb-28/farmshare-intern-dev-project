@@ -5,12 +5,16 @@ import { AVG_HANGING_WEIGHTS } from "../types";
 interface VolumeInputsSectionProps {
   selectedSpecies: EAnimalSpecies[];
   volumes: Record<EAnimalSpecies, string>;
+  volumeErrors: Partial<Record<EAnimalSpecies, string>>;
+  maxAnnualVolume: number;
   onVolumeChange: (species: EAnimalSpecies, value: string) => void;
 }
 
 export const VolumeInputsSection = ({
   selectedSpecies,
   volumes,
+  volumeErrors,
+  maxAnnualVolume,
   onVolumeChange,
 }: VolumeInputsSectionProps) => {
   if (selectedSpecies.length === 0) {
@@ -42,7 +46,9 @@ export const VolumeInputsSection = ({
               type="number"
               value={volumes[species] || ""}
               onChange={(event) => onVolumeChange(species, event.target.value)}
-              inputProps={{ min: 0 }}
+              inputProps={{ min: 0, max: maxAnnualVolume }}
+              error={Boolean(volumeErrors[species])}
+              helperText={volumeErrors[species]}
             />
           </CardContent>
         </Card>
