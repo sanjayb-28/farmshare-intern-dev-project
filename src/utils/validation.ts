@@ -7,7 +7,7 @@ import {
 
 export interface CalculatorInputs {
   selectedSpecies: EAnimalSpecies[];
-  volumes: Record<EAnimalSpecies, string>;
+  volumes: Partial<Record<EAnimalSpecies, string>>;
   timePerAnimal: string;
   hourlyWage: string;
 }

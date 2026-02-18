@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Container, Typography, Box, Paper } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import type { EAnimalSpecies } from "./types";
@@ -7,6 +7,8 @@ import { calculateHeads, calculateLaborValue } from "./utils/calculations";
 import {
   AdvancedSettingsPanel,
   AnnualSummary,
+  CalculatorActionsBar,
+  ClearAllDialog,
   SpeciesSelectField,
   VolumeInputsSection,
 } from "./components";
@@ -23,20 +25,34 @@ import {
   parseNonNegativeNumber,
   validateInputs,
 } from "./utils/validation";
+import {
+  clearPersistedState,
+  loadPersistedState,
+  persistState,
+} from "./utils/storage";
 import "./App.css";
 
 function App() {
-  const [selectedSpecies, setSelectedSpecies] = useState<EAnimalSpecies[]>([]);
-  const [volumes, setVolumes] = useState<Record<EAnimalSpecies, string>>(
-    {} as Record<EAnimalSpecies, string>,
+  const initialPersistedState = useMemo(() => loadPersistedState(), []);
+  const [selectedSpecies, setSelectedSpecies] = useState<EAnimalSpecies[]>(
+    () => initialPersistedState?.selectedSpecies ?? [],
+  );
+  const [volumes, setVolumes] = useState<Partial<Record<EAnimalSpecies, string>>>(
+    () => initialPersistedState?.volumes ?? {},
   );
   const [isSpeciesMenuOpen, setIsSpeciesMenuOpen] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [timePerAnimal, setTimePerAnimal] = useState(
-    DEFAULT_TIME_PER_ANIMAL_MINUTES,
+  const [showAdvanced, setShowAdvanced] = useState(
+    () => initialPersistedState?.showAdvanced ?? false,
   );
-  const [hourlyWage, setHourlyWage] = useState(DEFAULT_HOURLY_WAGE);
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [timePerAnimal, setTimePerAnimal] = useState(
+    () => initialPersistedState?.timePerAnimal ?? DEFAULT_TIME_PER_ANIMAL_MINUTES,
+  );
+  const [hourlyWage, setHourlyWage] = useState(
+    () => initialPersistedState?.hourlyWage ?? DEFAULT_HOURLY_WAGE,
+  );
   const menuReopenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasPersistedInitialState = useRef(false);
   const validationErrors = useMemo(
     () =>
       validateInputs({
@@ -48,6 +64,33 @@ function App() {
     [selectedSpecies, volumes, timePerAnimal, hourlyWage],
   );
   const hasErrors = hasValidationErrors(validationErrors);
+  const isAtDefaults =
+    selectedSpecies.length === 0 &&
+    Object.keys(volumes).length === 0 &&
+    timePerAnimal === DEFAULT_TIME_PER_ANIMAL_MINUTES &&
+    hourlyWage === DEFAULT_HOURLY_WAGE &&
+    !showAdvanced;
+
+  useEffect(() => {
+    if (!hasPersistedInitialState.current) {
+      hasPersistedInitialState.current = true;
+      return;
+    }
+
+    persistState({
+      selectedSpecies,
+      volumes,
+      timePerAnimal,
+      hourlyWage,
+      showAdvanced,
+    });
+  }, [
+    selectedSpecies,
+    volumes,
+    timePerAnimal,
+    hourlyWage,
+    showAdvanced,
+  ]);
 
   const handleSpeciesChange = (event: SelectChangeEvent<EAnimalSpecies[]>) => {
     const value = event.target.value;
@@ -76,6 +119,33 @@ function App() {
       delete next[speciesToRemove];
       return next;
     });
+  };
+
+  const resetToDefaults = () => {
+    setSelectedSpecies([]);
+    setVolumes({});
+    setTimePerAnimal(DEFAULT_TIME_PER_ANIMAL_MINUTES);
+    setHourlyWage(DEFAULT_HOURLY_WAGE);
+    setShowAdvanced(false);
+    setIsSpeciesMenuOpen(false);
+  };
+
+  const handleOpenClearAll = () => {
+    setShowClearAllDialog(true);
+  };
+
+  const handleCloseClearAll = () => {
+    setShowClearAllDialog(false);
+  };
+
+  const handleConfirmClearAll = () => {
+    resetToDefaults();
+    setShowClearAllDialog(false);
+  };
+
+  const handleResetSavedData = () => {
+    clearPersistedState();
+    resetToDefaults();
   };
 
   const calculateTotalAnnualSavings = () => {
@@ -151,6 +221,11 @@ function App() {
             maxAnnualVolume={MAX_ANNUAL_VOLUME}
             onVolumeChange={handleVolumeChange}
           />
+          <CalculatorActionsBar
+            isClearAllDisabled={isAtDefaults}
+            onOpenClearAll={handleOpenClearAll}
+            onResetSavedData={handleResetSavedData}
+          />
 
           <AdvancedSettingsPanel
             showAdvanced={showAdvanced}
@@ -171,6 +246,11 @@ function App() {
           totalAnnualSavings={calculateTotalAnnualSavings()}
           totalAnnualCost={calculateTotalAnnualCost()}
           hasErrors={hasErrors}
+        />
+        <ClearAllDialog
+          open={showClearAllDialog}
+          onCancel={handleCloseClearAll}
+          onConfirm={handleConfirmClearAll}
         />
       </Box>
     </Container>

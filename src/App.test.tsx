@@ -1,8 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { beforeEach, describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import App from "./App";
 
 describe("Meat Processor Value Calculator", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it("renders the calculator title", () => {
     render(<App />);
     expect(

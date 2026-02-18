@@ -4,7 +4,7 @@ import { AVG_HANGING_WEIGHTS } from "../types";
 
 interface VolumeInputsSectionProps {
   selectedSpecies: EAnimalSpecies[];
-  volumes: Record<EAnimalSpecies, string>;
+  volumes: Partial<Record<EAnimalSpecies, string>>;
   volumeErrors: Partial<Record<EAnimalSpecies, string>>;
   maxAnnualVolume: number;
   onVolumeChange: (species: EAnimalSpecies, value: string) => void;
