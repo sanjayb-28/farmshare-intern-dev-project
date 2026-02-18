@@ -1,8 +1,6 @@
-:root {
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 
+:root {
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -26,5 +24,39 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(90deg, #202328 0%, #1d1f23 100%);
+  background:
+    radial-gradient(
+      1200px circle at -10% -15%,
+      rgba(99, 179, 155, 0.3) 0%,
+      rgba(99, 179, 155, 0) 52%
+    ),
+    radial-gradient(
+      900px circle at 115% 0%,
+      rgba(208, 139, 63, 0.22) 0%,
+      rgba(208, 139, 63, 0) 47%
+    ),
+    linear-gradient(125deg, #0f1922 0%, #15202a 45%, #1d2231 100%);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20% -10%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 25% 30%, rgba(83, 156, 132, 0.2), transparent 45%),
+    radial-gradient(circle at 76% 70%, rgba(218, 161, 89, 0.15), transparent 45%);
+  filter: blur(12px);
+  animation: auraShift 14s ease-in-out infinite alternate;
+  z-index: -1;
+}
+
+@keyframes auraShift {
+  from {
+    transform: translate3d(0, -8px, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-12px, 14px, 0) scale(1.04);
+  }
 }

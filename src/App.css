@@ -1,3 +1,99 @@
 .app-shell {
-  padding-bottom: 24px;
+  padding-bottom: 36px;
+}
+
+.app-hero {
+  margin-bottom: 22px;
+  animation: heroEnter 520ms ease-out both;
+}
+
+.app-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(197, 233, 220, 0.35);
+  color: rgba(228, 246, 239, 0.92);
+  background: linear-gradient(
+    140deg,
+    rgba(63, 121, 104, 0.55) 0%,
+    rgba(52, 88, 118, 0.4) 100%
+  );
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.app-title {
+  color: #e7f3f1;
+  text-shadow: 0 3px 24px rgba(0, 0, 0, 0.35);
+}
+
+.app-subtitle {
+  max-width: 760px;
+  color: rgba(223, 236, 236, 0.88);
+}
+
+.control-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.control-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2f7a67 0%, #d08b3f 100%);
+}
+
+.results-grid > * {
+  animation: sectionEnter 420ms ease-out both;
+}
+
+.results-grid > *:nth-child(1) {
+  animation-delay: 60ms;
+}
+
+.results-grid > *:nth-child(2) {
+  animation-delay: 110ms;
+}
+
+.results-grid > *:nth-child(3) {
+  animation-delay: 160ms;
+}
+
+.results-grid > *:nth-child(4) {
+  animation-delay: 210ms;
+}
+
+@keyframes heroEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sectionEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .app-subtitle {
+    max-width: 100%;
+  }
 }

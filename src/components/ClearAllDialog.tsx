@@ -5,7 +5,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Stack,
 } from "@mui/material";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 
 interface ClearAllDialogProps {
   open: boolean;
@@ -19,8 +21,13 @@ export const ClearAllDialog = ({
   onConfirm,
 }: ClearAllDialogProps) => {
   return (
-    <Dialog open={open} onClose={onCancel}>
-      <DialogTitle>Clear all calculator data?</DialogTitle>
+    <Dialog open={open} onClose={onCancel} PaperProps={{ sx: { borderRadius: 3 } }}>
+      <DialogTitle>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <WarningAmberOutlinedIcon color="warning" />
+          <span>Clear all calculator data?</span>
+        </Stack>
+      </DialogTitle>
       <DialogContent>
         <DialogContentText>
           This will reset species, volumes, and advanced settings to defaults.

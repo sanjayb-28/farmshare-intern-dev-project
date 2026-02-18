@@ -1,4 +1,7 @@
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import CompareArrowsOutlinedIcon from "@mui/icons-material/CompareArrowsOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import type { ScenarioSnapshot } from "../types";
 import type { ProjectionResult } from "../utils/projection";
 
@@ -33,7 +36,18 @@ const ScenarioCard = ({
   onClear,
 }: ScenarioCardProps) => {
   return (
-    <Paper sx={{ p: 2, height: "100%" }}>
+    <Paper
+      sx={{
+        p: 2,
+        height: "100%",
+        borderRadius: 2.5,
+        transition: "transform 160ms ease, box-shadow 160ms ease",
+        "&:hover": {
+          transform: "translateY(-2px)",
+          boxShadow: "0 16px 28px rgba(12,20,28,0.16)",
+        },
+      }}
+    >
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -42,10 +56,16 @@ const ScenarioCard = ({
       >
         <Typography variant="h6">{title}</Typography>
         <Stack direction="row" spacing={1}>
-          <Button size="small" variant="outlined" onClick={onSave}>
+          <Button size="small" variant="outlined" onClick={onSave} startIcon={<SaveOutlinedIcon />}>
             Save
           </Button>
-          <Button size="small" color="error" onClick={onClear} disabled={!scenario}>
+          <Button
+            size="small"
+            color="error"
+            onClick={onClear}
+            disabled={!scenario}
+            startIcon={<DeleteOutlineIcon />}
+          >
             Clear
           </Button>
         </Stack>
@@ -92,10 +112,13 @@ export const ComparisonPanel = ({
       : null;
 
   return (
-    <Paper sx={{ p: 3, mt: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Scenario Comparison
-      </Typography>
+    <Paper sx={{ p: 3, borderRadius: 3 }}>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+        <CompareArrowsOutlinedIcon color="primary" />
+        <Typography variant="h5" gutterBottom>
+          Scenario Comparison
+        </Typography>
+      </Stack>
 
       <Box
         sx={{
@@ -125,7 +148,15 @@ export const ComparisonPanel = ({
       </Box>
 
       {delta !== null && (
-        <Box sx={{ mt: 2, p: 2, borderRadius: 2, bgcolor: "rgba(52,78,65,0.1)" }}>
+        <Box
+          sx={{
+            mt: 2,
+            p: 2,
+            borderRadius: 2,
+            bgcolor: "rgba(47,122,103,0.12)",
+            border: "1px solid rgba(47,122,103,0.22)",
+          }}
+        >
           <Typography variant="body2">
             Scenario B vs A net annual benefit delta: ${formatCurrency(delta)}
           </Typography>

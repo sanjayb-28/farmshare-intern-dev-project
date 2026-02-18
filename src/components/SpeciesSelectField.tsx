@@ -2,12 +2,14 @@ import {
   Box,
   Chip,
   FormControl,
+  InputAdornment,
   InputLabel,
   MenuItem,
   OutlinedInput,
   Select,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
+import PetsOutlinedIcon from "@mui/icons-material/PetsOutlined";
 import type { EAnimalSpecies } from "../types";
 import { EAnimalSpecies as AnimalSpecies } from "../types";
 
@@ -29,7 +31,16 @@ export const SpeciesSelectField = ({
   onSpeciesRemove,
 }: SpeciesSelectFieldProps) => {
   return (
-    <FormControl fullWidth sx={{ mb: 3 }}>
+    <FormControl
+      fullWidth
+      sx={{
+        mb: 3,
+        "& .MuiChip-root": {
+          bgcolor: "rgba(47,122,103,0.12)",
+          border: "1px solid rgba(47,122,103,0.24)",
+        },
+      }}
+    >
       <InputLabel>Select Animal Species</InputLabel>
       <Select
         multiple
@@ -38,7 +49,19 @@ export const SpeciesSelectField = ({
         open={isSpeciesMenuOpen}
         onOpen={onSpeciesMenuOpen}
         onClose={onSpeciesMenuClose}
-        input={<OutlinedInput label="Select Animal Species" />}
+        input={
+          <OutlinedInput
+            label="Select Animal Species"
+            startAdornment={
+              <InputAdornment position="start">
+                <PetsOutlinedIcon
+                  fontSize="small"
+                  sx={{ color: "primary.main", opacity: 0.8 }}
+                />
+              </InputAdornment>
+            }
+          />
+        }
         renderValue={(selected) => (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
             {selected.map((value) => (
@@ -53,9 +76,27 @@ export const SpeciesSelectField = ({
             ))}
           </Box>
         )}
+        MenuProps={{
+          PaperProps: {
+            sx: {
+              borderRadius: 2,
+              border: "1px solid rgba(18,36,43,0.16)",
+              boxShadow: "0 14px 24px rgba(10,18,24,0.22)",
+            },
+          },
+        }}
       >
         {Object.values(AnimalSpecies).map((species) => (
-          <MenuItem key={species} value={species}>
+          <MenuItem
+            key={species}
+            value={species}
+            sx={{
+              py: 1,
+              "&.Mui-selected": {
+                bgcolor: "rgba(47,122,103,0.16)",
+              },
+            }}
+          >
             {species.charAt(0).toUpperCase() + species.slice(1)}
           </MenuItem>
         ))}

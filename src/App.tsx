@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Container, Typography, Box, Paper } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
+import AgricultureOutlinedIcon from "@mui/icons-material/AgricultureOutlined";
 import type { CalculatorInputs, EAnimalSpecies } from "./types";
 import {
   AdvancedSettingsPanel,
@@ -200,9 +201,25 @@ function App() {
       }}
     >
       <Box className="app-shell" sx={{ my: { xs: 3, md: 4 } }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-          Meat Processor Value Calculator
-        </Typography>
+        <Box className="app-hero">
+          <Box className="app-eyebrow">
+            <AgricultureOutlinedIcon fontSize="small" />
+            Farmshare Operations Workspace
+          </Box>
+          <Typography
+            className="app-title"
+            variant="h4"
+            component="h1"
+            gutterBottom
+            sx={{ mb: 1 }}
+          >
+            Meat Processor Value Calculator
+          </Typography>
+          <Typography className="app-subtitle" variant="body1">
+            Estimate annual and monthly impact, compare scenarios, and export
+            results for stakeholder review.
+          </Typography>
+        </Box>
 
         <Box
           sx={{
@@ -216,8 +233,9 @@ function App() {
           }}
         >
           <Paper
+            className="control-panel"
             sx={{
-              p: 2,
+              p: 2.5,
               position: { xl: "sticky" },
               top: { xl: 24 },
             }}
@@ -277,7 +295,7 @@ function App() {
             />
           </Paper>
 
-          <Box sx={{ display: "grid", gap: 3 }}>
+          <Box className="results-grid" sx={{ display: "grid", gap: 3 }}>
             <AnnualSummary
               totalAnnualVolume={currentProjection.totals.annualVolume}
               totalAnnualSavings={currentProjection.totals.annualSavings}

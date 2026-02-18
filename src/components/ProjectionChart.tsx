@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { MouseEvent } from "react";
-import { Box, Paper, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Box, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import QueryStatsOutlinedIcon from "@mui/icons-material/QueryStatsOutlined";
 import { BarChart } from "@mui/x-charts/BarChart";
 import type { ProjectionResult } from "../utils/projection";
 
@@ -83,7 +84,7 @@ export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
   };
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ p: 3, borderRadius: 3 }}>
       <Box
         sx={{
           mb: 2,
@@ -95,9 +96,12 @@ export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
         }}
       >
         <Box>
-          <Typography variant="h5" gutterBottom>
-            Projection Chart
-          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <QueryStatsOutlinedIcon color="primary" />
+            <Typography variant="h5" gutterBottom>
+              Projection Chart
+            </Typography>
+          </Stack>
           <Typography variant="body2" color="text.secondary">
             {chartView === "annual"
               ? "Annual savings, cost, and net benefit in USD."
@@ -110,6 +114,17 @@ export const ProjectionChart = ({ projection }: ProjectionChartProps) => {
           value={chartView}
           onChange={handleChartViewChange}
           aria-label="projection chart view"
+          sx={{
+            "& .MuiToggleButton-root": {
+              px: 1.5,
+              borderColor: "rgba(18,36,43,0.2)",
+              color: "text.secondary",
+            },
+            "& .MuiToggleButton-root.Mui-selected": {
+              bgcolor: "rgba(47,122,103,0.18)",
+              color: "primary.dark",
+            },
+          }}
         >
           <ToggleButton value="annual">Annual Totals</ToggleButton>
           <ToggleButton value="monthly">Monthly by Species</ToggleButton>

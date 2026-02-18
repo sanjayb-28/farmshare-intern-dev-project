@@ -1,5 +1,6 @@
 import { Box, Collapse, IconButton, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 
 interface AdvancedSettingsPanelProps {
   showAdvanced: boolean;
@@ -28,10 +29,21 @@ export const AdvancedSettingsPanel = ({
 }: AdvancedSettingsPanelProps) => {
   return (
     <>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <Typography variant="body2" sx={{ flexGrow: 1 }}>
-          Advanced Settings
-        </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 2,
+          py: 0.5,
+          borderTop: "1px solid rgba(18,36,43,0.1)",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}>
+          <TuneOutlinedIcon color="primary" fontSize="small" />
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            Advanced Settings
+          </Typography>
+        </Box>
         <IconButton
           onClick={onToggleAdvanced}
           sx={{

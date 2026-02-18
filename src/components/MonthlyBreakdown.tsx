@@ -1,6 +1,7 @@
 import {
   Box,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -9,6 +10,11 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import SavingsOutlinedIcon from "@mui/icons-material/SavingsOutlined";
+import ScaleOutlinedIcon from "@mui/icons-material/ScaleOutlined";
+import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
 import type { EAnimalSpecies } from "../types";
 
 interface MonthlyBreakdownRow {
@@ -41,11 +47,52 @@ export const MonthlyBreakdown = ({
   monthlyCost,
   monthlyNetBenefit,
 }: MonthlyBreakdownProps) => {
+  const summaryItems = [
+    {
+      key: "volume",
+      label: "Monthly Volume",
+      value: `${monthlyVolume.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} lbs`,
+      icon: <ScaleOutlinedIcon fontSize="small" />,
+      bgColor: "rgba(77,142,120,0.12)",
+      borderColor: "rgba(57,126,103,0.24)",
+    },
+    {
+      key: "savings",
+      label: "Monthly Savings",
+      value: `$${formatCurrency(monthlySavings)}`,
+      icon: <SavingsOutlinedIcon fontSize="small" />,
+      bgColor: "rgba(47,143,82,0.12)",
+      borderColor: "rgba(47,143,82,0.24)",
+    },
+    {
+      key: "cost",
+      label: "Monthly Cost",
+      value: `$${formatCurrency(monthlyCost)}`,
+      icon: <PaymentsOutlinedIcon fontSize="small" />,
+      bgColor: "rgba(204,75,77,0.12)",
+      borderColor: "rgba(204,75,77,0.24)",
+    },
+    {
+      key: "net",
+      label: "Monthly Net",
+      value: `$${formatCurrency(monthlyNetBenefit)}`,
+      icon: <TrendingUpOutlinedIcon fontSize="small" />,
+      bgColor: "rgba(53,80,112,0.14)",
+      borderColor: "rgba(53,80,112,0.24)",
+    },
+  ];
+
   return (
-    <Paper sx={{ p: 3, mt: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Monthly Breakdown
-      </Typography>
+    <Paper sx={{ p: 3, borderRadius: 3 }}>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+        <CalendarMonthOutlinedIcon color="primary" />
+        <Typography variant="h5" gutterBottom>
+          Monthly Breakdown
+        </Typography>
+      </Stack>
 
       <Box
         sx={{
@@ -58,42 +105,36 @@ export const MonthlyBreakdown = ({
           mb: 2,
         }}
       >
-        <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "rgba(88,129,87,0.12)" }}>
-          <Typography variant="body2" color="text.secondary">
-            Monthly Volume
-          </Typography>
-          <Typography variant="h6">
-            {monthlyVolume.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{" "}
-            lbs
-          </Typography>
-        </Box>
-        <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "rgba(64,145,108,0.12)" }}>
-          <Typography variant="body2" color="text.secondary">
-            Monthly Savings
-          </Typography>
-          <Typography variant="h6">${formatCurrency(monthlySavings)}</Typography>
-        </Box>
-        <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "rgba(188,71,73,0.12)" }}>
-          <Typography variant="body2" color="text.secondary">
-            Monthly Cost
-          </Typography>
-          <Typography variant="h6">${formatCurrency(monthlyCost)}</Typography>
-        </Box>
-        <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "rgba(52,78,65,0.12)" }}>
-          <Typography variant="body2" color="text.secondary">
-            Monthly Net
-          </Typography>
-          <Typography variant="h6">${formatCurrency(monthlyNetBenefit)}</Typography>
-        </Box>
+        {summaryItems.map((item) => (
+          <Box
+            key={item.key}
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: item.bgColor,
+              border: `1px solid ${item.borderColor}`,
+              transition: "transform 160ms ease, box-shadow 160ms ease",
+              "&:hover": {
+                transform: "translateY(-2px)",
+                boxShadow: "0 12px 22px rgba(11,21,31,0.12)",
+              },
+            }}
+          >
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <Box sx={{ color: "text.secondary", display: "inline-flex" }}>{item.icon}</Box>
+              <Typography variant="body2" color="text.secondary">
+                {item.label}
+              </Typography>
+            </Stack>
+            <Typography variant="h6">{item.value}</Typography>
+          </Box>
+        ))}
       </Box>
 
-      <TableContainer>
+      <TableContainer sx={{ borderRadius: 2, border: "1px solid rgba(18,36,43,0.1)" }}>
         <Table size="small">
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ bgcolor: "rgba(47,122,103,0.08)" }}>
               <TableCell>Species</TableCell>
               <TableCell align="right">Annual Heads</TableCell>
               <TableCell align="right">Monthly Volume</TableCell>

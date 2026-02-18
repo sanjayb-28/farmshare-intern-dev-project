@@ -1,4 +1,5 @@
-import { Box, Card, CardContent, TextField, Typography } from "@mui/material";
+import { Box, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
+import ScaleOutlinedIcon from "@mui/icons-material/ScaleOutlined";
 import type { EAnimalSpecies } from "../types";
 import { AVG_HANGING_WEIGHTS } from "../types";
 
@@ -23,13 +24,25 @@ export const VolumeInputsSection = ({
 
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Annual Processing Volume by Species
-      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+        <ScaleOutlinedIcon color="primary" fontSize="small" />
+        <Typography variant="h6">Annual Processing Volume by Species</Typography>
+      </Stack>
       {selectedSpecies.map((species) => (
-        <Card key={species} sx={{ mb: 2 }}>
+        <Card
+          key={species}
+          sx={{
+            mb: 1.75,
+            borderRadius: 3,
+            transition: "transform 160ms ease, box-shadow 160ms ease",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow: "0 16px 28px rgba(11, 21, 32, 0.14)",
+            },
+          }}
+        >
           <CardContent>
-            <Typography variant="subtitle1" gutterBottom>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 650 }}>
               {species.charAt(0).toUpperCase() + species.slice(1)}
               <Typography
                 component="span"
