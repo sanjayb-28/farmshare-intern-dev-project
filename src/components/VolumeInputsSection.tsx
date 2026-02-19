@@ -32,16 +32,17 @@ export const VolumeInputsSection = ({
         <Card
           key={species}
           sx={{
-            mb: 1.75,
-            borderRadius: 3,
-            transition: "transform 160ms ease, box-shadow 160ms ease",
+            mb: 1.5,
+            borderRadius: 2.5,
+            border: "1px solid rgba(18,36,43,0.1)",
+            boxShadow: "0 6px 14px rgba(11, 21, 32, 0.08)",
+            transition: "box-shadow 160ms ease",
             "&:hover": {
-              transform: "translateY(-2px)",
-              boxShadow: "0 16px 28px rgba(11, 21, 32, 0.14)",
+              boxShadow: "0 8px 16px rgba(11, 21, 32, 0.11)",
             },
           }}
         >
-          <CardContent>
+          <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
             <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 650 }}>
               {species.charAt(0).toUpperCase() + species.slice(1)}
               <Typography

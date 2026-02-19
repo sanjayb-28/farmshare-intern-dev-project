@@ -22,18 +22,19 @@ export const ClearAllDialog = ({
 }: ClearAllDialogProps) => {
   return (
     <Dialog open={open} onClose={onCancel} PaperProps={{ sx: { borderRadius: 3 } }}>
-      <DialogTitle>
-        <Stack direction="row" spacing={1} alignItems="center">
+      <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
+        <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
           <WarningAmberOutlinedIcon color="warning" />
           <span>Clear all calculator data?</span>
         </Stack>
       </DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          This will reset species, volumes, and advanced settings to defaults.
+      <DialogContent sx={{ textAlign: "center", pt: 0.5 }}>
+        <DialogContentText sx={{ m: 0 }}>
+          This clears species, volumes, advanced settings, scenario comparison,
+          and saved browser data.
         </DialogContentText>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ justifyContent: "center", pb: 2, pt: 1 }}>
         <Button onClick={onCancel}>Cancel</Button>
         <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
           Clear All

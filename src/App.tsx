@@ -155,13 +155,9 @@ function App() {
   };
 
   const handleConfirmClearAll = () => {
-    resetToDefaults();
-    setShowClearAllDialog(false);
-  };
-
-  const handleResetSavedData = () => {
     clearPersistedState();
     resetToDefaults();
+    setShowClearAllDialog(false);
   };
 
   const handleSaveScenario = (slot: ScenarioSlot) => {
@@ -203,6 +199,9 @@ function App() {
     >
       <Box className="app-shell" sx={{ my: { xs: 3, md: 4 } }}>
         <Box className="app-hero">
+          <Box className="app-brand" aria-label="Farmshare">
+            <span className="app-brand-wordmark">farmshare</span>
+          </Box>
           <Typography
             className="app-title"
             variant="h4"
@@ -259,7 +258,6 @@ function App() {
             <CalculatorActionsBar
               isClearAllDisabled={isAtDefaults}
               onOpenClearAll={handleOpenClearAll}
-              onResetSavedData={handleResetSavedData}
               onExportCsv={handleExportCsv}
               onPrintReport={handlePrintReport}
               isExportDisabled={currentProjection.rows.length === 0}

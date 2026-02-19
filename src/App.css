@@ -3,18 +3,41 @@
 }
 
 .app-hero {
-  margin-bottom: 22px;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 26px;
+  padding-top: 4px;
   animation: heroEnter 520ms ease-out both;
+}
+
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0;
+}
+
+.app-brand-wordmark {
+  display: block;
+  color: #effb36;
+  font-family: "Roca Two Heavy", "Roca Two", "Roca", "Rokkitt", "Georgia", serif;
+  font-size: clamp(2.25rem, 4.7vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.028em;
+  line-height: 0.9;
+  text-transform: lowercase;
 }
 
 .app-title {
   color: #e7f3f1;
   text-shadow: 0 3px 24px rgba(0, 0, 0, 0.35);
+  line-height: 1.1;
 }
 
 .app-subtitle {
   max-width: 760px;
   color: rgba(223, 236, 236, 0.88);
+  margin-top: -2px;
 }
 
 .control-panel {
@@ -84,6 +107,16 @@
   }
 
   .app-hero {
+    gap: 8px;
     margin-bottom: 16px;
+    padding-top: 0;
+  }
+
+  .app-brand {
+    padding: 0;
+  }
+
+  .app-brand-wordmark {
+    font-size: min(15.8vw, 3.1rem);
   }
 }
