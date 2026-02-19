@@ -94,6 +94,11 @@ function App() {
       return;
     }
 
+    if (isDefaultCalculatorState(calculatorState)) {
+      clearPersistedState();
+      return;
+    }
+
     persistState(calculatorState);
   }, [calculatorState]);
 
