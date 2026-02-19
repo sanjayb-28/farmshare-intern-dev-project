@@ -43,17 +43,22 @@ export const VolumeInputsSection = ({
           }}
         >
           <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 650 }}>
-              {species.charAt(0).toUpperCase() + species.slice(1)}
-              <Typography
-                component="span"
-                variant="body2"
-                color="text.secondary"
-                sx={{ ml: 1 }}
-              >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                gap: 1,
+                mb: 1,
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 650 }}>
+                {species.charAt(0).toUpperCase() + species.slice(1)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: "right" }}>
                 (Avg: {AVG_HANGING_WEIGHTS[species]} lbs/animal)
               </Typography>
-            </Typography>
+            </Box>
             <TextField
               fullWidth
               label="Total Annual Hanging Weight (lbs)"
