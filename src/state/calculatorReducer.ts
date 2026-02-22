@@ -18,6 +18,8 @@ export type CalculatorAction =
   | { type: "setVolume"; payload: { species: EAnimalSpecies; value: string } }
   | { type: "removeSpecies"; payload: EAnimalSpecies }
   | { type: "applyPreset"; payload: SpeciesPreset }
+  | { type: "saveCustomPreset"; payload: { id: string; label: string } }
+  | { type: "deleteCustomPreset"; payload: string }
   | { type: "setShowAdvanced"; payload: boolean }
   | { type: "setTimePerAnimal"; payload: string }
   | { type: "setHourlyWage"; payload: string }
@@ -54,6 +56,7 @@ const createDefaultState = (): CalculatorState => ({
   hourlyWage: DEFAULT_HOURLY_WAGE,
   showAdvanced: false,
   comparison: { A: null, B: null },
+  customPresets: [],
 });
 
 export const createInitialCalculatorState = (
@@ -70,6 +73,11 @@ export const createInitialCalculatorState = (
     hourlyWage: persistedState.hourlyWage,
     showAdvanced: persistedState.showAdvanced,
     comparison: cloneComparison(persistedState.comparison),
+    customPresets: persistedState.customPresets.map((preset) => ({
+      ...preset,
+      species: [...preset.species],
+      volumes: { ...preset.volumes },
+    })),
   };
 };
 
@@ -80,7 +88,8 @@ export const isDefaultCalculatorState = (state: CalculatorState): boolean =>
   state.hourlyWage === DEFAULT_HOURLY_WAGE &&
   !state.showAdvanced &&
   state.comparison.A === null &&
-  state.comparison.B === null;
+  state.comparison.B === null &&
+  state.customPresets.length === 0;
 
 export const calculatorReducer = (
   state: CalculatorState,
@@ -117,6 +126,44 @@ export const calculatorReducer = (
         ...state,
         selectedSpecies: [...action.payload.species],
         volumes: { ...action.payload.volumes },
+      };
+    case "saveCustomPreset": {
+      if (state.selectedSpecies.length === 0) {
+        return state;
+      }
+
+      const volumes = state.selectedSpecies.reduce<CalculatorState["volumes"]>(
+        (acc, species) => {
+          const value = state.volumes[species];
+          if (typeof value === "string") {
+            acc[species] = value;
+          }
+          return acc;
+        },
+        {},
+      );
+
+      const nextPreset: SpeciesPreset = {
+        id: action.payload.id,
+        label: action.payload.label,
+        species: [...state.selectedSpecies],
+        volumes,
+      };
+
+      return {
+        ...state,
+        customPresets: [
+          ...state.customPresets.filter((preset) => preset.id !== action.payload.id),
+          nextPreset,
+        ],
+      };
+    }
+    case "deleteCustomPreset":
+      return {
+        ...state,
+        customPresets: state.customPresets.filter(
+          (preset) => preset.id !== action.payload,
+        ),
       };
     case "setShowAdvanced":
       return {

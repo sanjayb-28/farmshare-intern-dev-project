@@ -1,4 +1,5 @@
 import { EAnimalSpecies } from "../types";
+import type { SpeciesPreset } from "../constants/presets";
 import type {
   CalculatorInputs,
   ComparisonState,
@@ -22,6 +23,7 @@ export interface PersistedCalculatorState {
   hourlyWage: CalculatorInputs["hourlyWage"];
   showAdvanced: boolean;
   comparison: ComparisonState;
+  customPresets: SpeciesPreset[];
 }
 
 interface PersistedPayload {
@@ -110,6 +112,37 @@ const sanitizeComparisonState = (value: unknown): ComparisonState => {
   };
 };
 
+const sanitizePreset = (value: unknown): SpeciesPreset | null => {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
+
+  if (typeof value.id !== "string" || value.id.trim() === "") {
+    return null;
+  }
+
+  if (typeof value.label !== "string" || value.label.trim() === "") {
+    return null;
+  }
+
+  return {
+    id: value.id,
+    label: value.label,
+    species: sanitizeSpecies(value.species),
+    volumes: sanitizeVolumes(value.volumes),
+  };
+};
+
+const sanitizeCustomPresets = (value: unknown): SpeciesPreset[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((preset) => sanitizePreset(preset))
+    .filter((preset): preset is SpeciesPreset => preset !== null);
+};
+
 const sanitizeState = (value: unknown): PersistedCalculatorState | null => {
   if (!isObjectRecord(value)) {
     return null;
@@ -131,6 +164,7 @@ const sanitizeState = (value: unknown): PersistedCalculatorState | null => {
     hourlyWage: inputs.hourlyWage,
     showAdvanced: value.showAdvanced,
     comparison: sanitizeComparisonState(value.comparison),
+    customPresets: sanitizeCustomPresets(value.customPresets),
   };
 };
 

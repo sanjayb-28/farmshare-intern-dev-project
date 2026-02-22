@@ -1,12 +1,18 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Chip, Stack, Typography } from "@mui/material";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
-import { SPECIES_PRESETS } from "../constants/presets";
+import type { SpeciesPreset } from "../constants/presets";
 
 interface SpeciesPresetsBarProps {
+  customPresets: SpeciesPreset[];
   onApplyPreset: (presetId: string) => void;
+  onDeleteCustomPreset: (presetId: string) => void;
 }
 
-export const SpeciesPresetsBar = ({ onApplyPreset }: SpeciesPresetsBarProps) => {
+export const SpeciesPresetsBar = ({
+  customPresets,
+  onApplyPreset,
+  onDeleteCustomPreset,
+}: SpeciesPresetsBarProps) => {
   return (
     <Box sx={{ mb: 2.5 }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
@@ -16,24 +22,29 @@ export const SpeciesPresetsBar = ({ onApplyPreset }: SpeciesPresetsBarProps) => 
         </Typography>
       </Stack>
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-        {SPECIES_PRESETS.map((preset) => (
-          <Button
+        {customPresets.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No saved presets yet.
+          </Typography>
+        ) : null}
+        {customPresets.map((preset) => (
+          <Chip
             key={preset.id}
+            label={preset.label}
             variant="outlined"
-            size="small"
             onClick={() => onApplyPreset(preset.id)}
+            onDelete={(event) => {
+              event.stopPropagation();
+              onDeleteCustomPreset(preset.id);
+            }}
             sx={{
-              borderRadius: 2,
               borderColor: "rgba(47,122,103,0.4)",
               bgcolor: "rgba(47,122,103,0.08)",
-              "&:hover": {
-                borderColor: "primary.main",
-                bgcolor: "rgba(47,122,103,0.16)",
+              "& .MuiChip-label": {
+                fontWeight: 600,
               },
             }}
-          >
-            {preset.label}
-          </Button>
+          />
         ))}
       </Stack>
     </Box>

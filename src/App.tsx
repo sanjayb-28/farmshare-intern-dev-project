@@ -10,6 +10,7 @@ import {
   ClearAllDialog,
   MonthlyBreakdown,
   ProjectionChart,
+  SavePresetDialog,
   SpeciesPresetsBar,
   SpeciesSelectField,
   VolumeInputsSection,
@@ -19,7 +20,6 @@ import {
   MAX_HOURLY_WAGE,
   MAX_TIME_PER_ANIMAL_MINUTES,
 } from "./constants/calculator";
-import { SPECIES_PRESETS } from "./constants/presets";
 import {
   hasValidationErrors,
   validateInputs,
@@ -54,10 +54,12 @@ function App() {
     timePerAnimal,
     hourlyWage,
     comparison,
+    customPresets,
   } = calculatorState;
 
   const [isSpeciesMenuOpen, setIsSpeciesMenuOpen] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [showSavePresetDialog, setShowSavePresetDialog] = useState(false);
   const menuReopenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasPersistedInitialState = useRef(false);
   const currentInputs = useMemo<CalculatorInputs>(
@@ -102,6 +104,15 @@ function App() {
     persistState(calculatorState);
   }, [calculatorState]);
 
+  useEffect(
+    () => () => {
+      if (menuReopenTimer.current !== null) {
+        clearTimeout(menuReopenTimer.current);
+      }
+    },
+    [],
+  );
+
   const handleSpeciesChange = (event: SelectChangeEvent<EAnimalSpecies[]>) => {
     const value = event.target.value;
     const species = typeof value === "string" ? value.split(",") : value;
@@ -134,7 +145,7 @@ function App() {
   };
 
   const handleApplyPreset = (presetId: string) => {
-    const preset = SPECIES_PRESETS.find((entry) => entry.id === presetId);
+    const preset = customPresets.find((entry) => entry.id === presetId);
     if (!preset) {
       return;
     }
@@ -144,6 +155,44 @@ function App() {
       payload: preset,
     });
     setIsSpeciesMenuOpen(false);
+  };
+
+  const handleDeleteCustomPreset = (presetId: string) => {
+    dispatch({
+      type: "deleteCustomPreset",
+      payload: presetId,
+    });
+  };
+
+  const handleOpenSavePreset = () => {
+    setShowSavePresetDialog(true);
+  };
+
+  const handleCloseSavePreset = () => {
+    setShowSavePresetDialog(false);
+  };
+
+  const handleConfirmSavePreset = (presetName: string) => {
+    const normalizedName = presetName.trim();
+    if (!normalizedName) {
+      return;
+    }
+
+    const existingPreset = customPresets.find(
+      (preset) => preset.label.toLowerCase() === normalizedName.toLowerCase(),
+    );
+    const presetId =
+      existingPreset?.id ??
+      `custom-${Date.now()}-${Math.floor(Math.random() * 10_000)}`;
+
+    dispatch({
+      type: "saveCustomPreset",
+      payload: {
+        id: presetId,
+        label: normalizedName,
+      },
+    });
+    setShowSavePresetDialog(false);
   };
 
   const resetToDefaults = () => {
@@ -243,7 +292,11 @@ function App() {
               minWidth: 0,
             }}
           >
-            <SpeciesPresetsBar onApplyPreset={handleApplyPreset} />
+            <SpeciesPresetsBar
+              customPresets={customPresets}
+              onApplyPreset={handleApplyPreset}
+              onDeleteCustomPreset={handleDeleteCustomPreset}
+            />
             <SpeciesSelectField
               selectedSpecies={selectedSpecies}
               isSpeciesMenuOpen={isSpeciesMenuOpen}
@@ -263,9 +316,11 @@ function App() {
             <CalculatorActionsBar
               isClearAllDisabled={isAtDefaults}
               onOpenClearAll={handleOpenClearAll}
+              onOpenSavePreset={handleOpenSavePreset}
               onExportCsv={handleExportCsv}
               onPrintReport={handlePrintReport}
               isExportDisabled={currentProjection.rows.length === 0}
+              isSavePresetDisabled={selectedSpecies.length === 0}
             />
 
             <AdvancedSettingsPanel
@@ -327,6 +382,11 @@ function App() {
           open={showClearAllDialog}
           onCancel={handleCloseClearAll}
           onConfirm={handleConfirmClearAll}
+        />
+        <SavePresetDialog
+          open={showSavePresetDialog}
+          onCancel={handleCloseSavePreset}
+          onConfirm={handleConfirmSavePreset}
         />
       </Box>
     </Container>

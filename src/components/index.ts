@@ -5,6 +5,7 @@ export * from "./AdvancedSettingsPanel";
 export * from "./AnnualSummary";
 export * from "./MonthlyBreakdown";
 export * from "./ProjectionChart";
+export * from "./SavePresetDialog";
 export * from "./SpeciesPresetsBar";
 export * from "./SpeciesSelectField";
 export * from "./VolumeInputsSection";
